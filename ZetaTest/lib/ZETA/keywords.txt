@@ -1,0 +1,29 @@
+#######################################
+# Syntax Coloring Map For ZETA
+####################################### 
+# Class
+#######################################
+
+ZETA	KEYWORD3
+
+#######################################
+# Methods and Functions 
+#######################################	
+
+Init	KEYWORD2
+Send_Packet	KEYWORD2
+Wait_IRQ	KEYWORD2
+Zeta_Ready	KEYWORD2
+Select_Mode	KEYWORD2
+RX_Mode	KEYWORD2
+Set_RF_Baud	KEYWORD2
+Sync_Byte	KEYWORD2
+Get_Packet	KEYWORD2
+Get_RX_Byte	KEYWORD2
+Close_Send	KEYWORD2		
+Write_Byte	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+zeta	LITERAL1
