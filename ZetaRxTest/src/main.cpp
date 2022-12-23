@@ -14,7 +14,7 @@
 // Include spi Lib
 #include <Arduino.h>
 #include  <SPI.h>
-#include <ZETA.h>
+#include "ZETA.h"
 
 /*
 #define  SSEL   10   // slave selact pin for SPI
@@ -24,7 +24,7 @@
 
 //these pins are configured in the ZETA.Init() function 
 #define  TX_LED 7    // ON Board TX LED Controled Via arduino pin 7  
-#define  RX_LED 6    // On Board RX LED Controled Via arduino pin 6
+#define  RX_LED LED_BUILTIN    // On Board RX LED Controled Via arduino pin 6
 
 byte RxData;         // rx data byte 
 byte PLength;        // Packet lencth read from FIFO
