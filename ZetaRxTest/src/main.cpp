@@ -10,11 +10,41 @@
 
 */
 
-
 // Include spi Lib
 #include <Arduino.h>
 #include  <SPI.h>
 #include "ZETA.h"
+
+static const uint8_t TX2 = 17;
+static const uint8_t RX2 = 16;
+
+
+
+
+static const uint8_t A1 = 39;
+static const uint8_t A2 = 34;
+
+
+static const uint8_t A8 = 2;
+static const uint8_t A9 = 13;
+
+
+
+
+static const uint8_t D0 = 3;
+static const uint8_t D1 = 1;
+static const uint8_t D2 = 25;
+static const uint8_t D3 = 26;
+static const uint8_t D4 = 27;
+static const uint8_t D5 = 0;
+static const uint8_t D6 = 14;
+static const uint8_t D7 = 13;
+static const uint8_t D8 = 5;
+static const uint8_t D9 = 2;
+static const uint8_t D10 = 17;
+static const uint8_t D11 = 16;
+static const uint8_t D12 = 4;
+static const uint8_t D13 = 12;
 
 /*
 #define  SSEL   10   // slave selact pin for SPI
