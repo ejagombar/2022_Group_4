@@ -12,21 +12,6 @@
 #include <Arduino.h>
 #include "DFRobot_GDL.h"
 
-static const uint8_t D0 = 3;
-static const uint8_t D1 = 1;
-static const uint8_t D2 = 25;
-static const uint8_t D3 = 26;
-static const uint8_t D4 = 27;
-static const uint8_t D5 = 0;
-static const uint8_t D6 = 14;
-static const uint8_t D7 = 13;
-static const uint8_t D8 = 5;
-static const uint8_t D9 = 2;
-static const uint8_t D10 = 17;
-static const uint8_t D11 = 16;
-static const uint8_t D12 = 4;
-static const uint8_t D13 = 12;
-
 /*M0*/
 /*ESP32 and ESP8266*/
 #define TFT_DC D2
