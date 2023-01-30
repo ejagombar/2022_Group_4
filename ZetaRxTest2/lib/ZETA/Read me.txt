@@ -1,0 +1,101 @@
+/*********************************************************************************
+
+						======	 =====	 =======     /\
+							/	 |		    |	    /  \
+						   /	 ====	    |      /====\
+						  / 	 |		    |	  /		 \	
+						======	 =====	    | 	 /	      \
+			
+/*********************************************************************************
+
+			
+use data sheet from WEB site for Command values.
+WEB Site:   
+http://www.rfsolutions.co.uk
+
+ZETA library is for SPI bus only serial  port is reserved for sending data received to a terminal program.  		
+	
+Commands in Library:
+	
+Init();
+	configures SPI bus and serial to 19200 also configures all Used IO on Arduino-UNO 
+	call in Void setup. 
+	
+	
+
+Wait_IRQ():
+	call after entering RX mode. it waits for the IRQ line to go LOW indicating a packet was
+	received and ready to be processed.
+
+	
+Zeta_Ready();
+	called after Init in void setup. 
+	this waits for the CODEC to Finnish configuring the ZETA
+	indicates when the CODEC is ready for SPI communication.
+	both TX_LED and RX_LED Will be on while this command is waiting.
+
+	
+Select_Mode(Mode);
+	put the Zeta in to a selected mode see data sheet for commands all values 
+	for this command are in HEX eg. ZETA.Select_Mode(0X02);
+	
+	
+RX_Mode(Ch, PLength);
+	puts the ZETA in receive Mode with selectable channel and packet length
+	Ch      = Channel
+	PLength = Length of data packet  
+	
+	eg.	ZETA.RX_Mode(0x00, 0x0C); 
+	this will put the ZETA in RX mode waiting for a 12byte packet on channel 0X00
+	all all values are in HEX see data sheet
+		
+
+Set_RF_Baud(Baud);
+	set the speed the RF sends a packet both TX and RX must have the same setting to work
+	see data sheet for values all in HEX.
+	
+
+	
+Sync_Byte(Sync1, Sync2, Sync3, Sync4);
+	 select RF Sync bytes This is so the RX knows when its being talked to see data sheet.   
+	
+	if not used send 0XAA as the Unused sync byte
+	if only using 3 bytes use 2, 3, 4. 
+	if only using 2 bytes use 3, 4.  
+	if only using 1 byte use  4.
+		
+
+Send_Packet(Ch, PLength);
+	starts the send command this must be followed by Write_Byte command o send packet
+	to Transmit RF See example TX code. 	
+	
+ 	Ch      = Channel
+	PLength = Length of data packet
+	
+	
+Write_Byte(TxByte);
+	called after Send_Packet this writes one byte of data to the TX FIFO ready for sending	
+	call this till all the data you need to send is done. 
+	
+	
+	
+Close_Send();	
+	called after Write_Byte has been Finnish this tells the CODEC its ready to 
+	send the Data in its FIFO.	
+	
+	
+	
+Get_Packet();
+	this command returns nothing all this dose is send the received packet out to a terminal program 
+	this routine works out the packet length then sends all received data out via serial baud 19200
+	
+	
+	
+Get_RX_Byte(return RxByte);
+	this reads one Byte of data from the FIFO of the CODEC loop this command till all data
+    has been read see ZETA-LIB-RX sample on how to use this command 	
+		
+		
+	
+	
+	

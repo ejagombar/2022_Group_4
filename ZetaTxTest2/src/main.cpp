@@ -1,3 +1,14 @@
+/*
+    Arduino-Uno Sample Code For ZETA Module useing library.
+
+   Company:  RF SOLUTIONS
+   web site:  http://www.rfsolutions.co.uk
+
+
+  Sample code sends a 12byte packet out every 600ms can be recived on sample rx code
+  and seen on a terminal program as #R--0123456789 <crlf>.
+*/
+
 // Include spi Lib
 #include <Arduino.h>
 #include <SPI.h>  // include SPI
@@ -10,12 +21,11 @@
 #define  IRQ    8    // Interupt request from CODEC
 */
 
-// these pins are configured in the ZETA.Init() function
 #define TX_LED LED_BUILTIN // ON Board TX LED Controled Via arduino pin 7
-#define RX_LED LED_BUILTIN // On Board RX LED Controled Via arduino pin 6
+#define RX_LED D13 // On Board RX LED Controled Via arduino pin 6
 
-unsigned char RxData;  // rx data byte
-unsigned char PLength; // Packet lencth read from FIFO
+byte RxData;  // rx data byte
+byte PLength; // Packet lencth read from FIFO
 
 zeta ZETA; // Name the class for use with the library
 
@@ -26,14 +36,14 @@ void setup()
 
   ZETA.Zeta_Ready(); // wait for codec to init ready for next command;
 
-  ZETA.Set_RF_Baud(0X02); // set RF baud to 9k6
+  //  ZETA.Set_RF_Baud(0X02);  // set RF baud to 9k6
 }
 
 void loop()
 {
 
   delay(600);
-  Serial.println("Send Packet");
+
   ZETA.Send_Packet(0x00, 0x0C); // send a paket on channle 0, 12bytes long
   ZETA.Write_Byte(0x30);
   ZETA.Write_Byte(0x31); // packet received on ZETA-LIB-RX sample = 0, 1, 2, 3, 4, 5, 6, 7 ,8 ,9 <CR LF>

@@ -31,8 +31,8 @@ RF SOLUTIONS.
 #define TX_LED LED_BUILTIN // ON Board TX LED Controlled Via arduino pin 7
 #define RX_LED LED_BUILTIN // On Board RX LED Controlled Via arduino pin 6
 
-unsigned char SPIVal;
-unsigned char Loop_CNT;
+byte SPIVal;
+byte Loop_CNT;
 
 /****************************************************************
    Init:
@@ -48,7 +48,7 @@ void zeta::Init()
    pinMode(TX_LED, OUTPUT);
    pinMode(RX_LED, OUTPUT);
    pinMode(IRQ, INPUT_PULLUP);
-   // pinMode(12, INPUT_PULLUP);
+   pinMode(12, INPUT_PULLUP);
    pinMode(SDN, OUTPUT);
 
    digitalWrite(TX_LED, HIGH);
@@ -67,7 +67,7 @@ void zeta::Init()
 // interrupt from codec to show waiting response from Arduino
 void zeta::Wait_IRQ()
 {
-   while (digitalRead(IRQ) == HIGH)
+   while (digitalRead(8) == HIGH)
    {
       // just wait for interrupt from CODEC loop here
    }
@@ -79,7 +79,7 @@ void zeta::Wait_IRQ()
 ****************************************************************/
 void zeta::Zeta_Ready()
 {
-   while (digitalRead(IRQ) == LOW)
+   while (digitalRead(8) == LOW)
    {
       digitalWrite(TX_LED, LOW); // SHOW WAITING VIA BOTH led LIGHT
       digitalWrite(RX_LED, LOW);
@@ -94,18 +94,18 @@ void zeta::Zeta_Ready()
       2  =  READY
       3  =  Sleep
 **************************************************************/
-void zeta::Select_Mode(unsigned char Mode)
+void zeta::Select_Mode(byte Mode)
 {
-   digitalWrite(SSEL, LOW);
-   digitalWrite(TX_LED, LOW);
+   digitalWrite(10, LOW);
+   digitalWrite(7, LOW);
 
    SPI.transfer('A');
    SPI.transfer('T');
    SPI.transfer('M');
    SPI.transfer(Mode);
 
-   digitalWrite(SSEL, HIGH);
-   digitalWrite(TX_LED, HIGH);
+   digitalWrite(10, HIGH);
+   digitalWrite(7, HIGH);
 }
 
 /*************************************************************
@@ -120,7 +120,7 @@ void zeta::Select_Mode(unsigned char Mode)
       after this command wait for IRQ before reading data back
 
 **************************************************************/
-void zeta::RX_Mode(unsigned char Ch, unsigned char PLength)
+void zeta::RX_Mode(byte Ch, byte PLength)
 {
    digitalWrite(SSEL, LOW);
    digitalWrite(RX_LED, LOW);
@@ -144,7 +144,7 @@ select RF Baud rate values 0 > 6 See data sheet for settings
 
 
 **************************************************************/
-void zeta::Set_RF_Baud(unsigned char Baud)
+void zeta::Set_RF_Baud(byte Baud)
 {
    digitalWrite(SSEL, LOW);
    digitalWrite(RX_LED, LOW);
@@ -177,7 +177,7 @@ select RF Sync bytes X4
      value in HEX
 
 **************************************************************/
-void zeta::Sync_Byte(unsigned char Sync1, unsigned char Sync2, unsigned char Sync3, unsigned char Sync4)
+void zeta::Sync_Byte(byte Sync1, byte Sync2, byte Sync3, byte Sync4)
 {
    digitalWrite(SSEL, LOW);
    digitalWrite(RX_LED, LOW);
@@ -209,7 +209,7 @@ void zeta::Sync_Byte(unsigned char Sync1, unsigned char Sync2, unsigned char Syn
        after this command pull SSEL line high and TX_LED HIGH.
 
 **************************************************************/
-void zeta::Send_Packet(unsigned char Ch, unsigned char PLength)
+void zeta::Send_Packet(byte Ch, byte PLength)
 {
    digitalWrite(SSEL, LOW);
    digitalWrite(TX_LED, LOW);
