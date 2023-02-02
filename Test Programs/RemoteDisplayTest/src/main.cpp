@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "DFRobot_GDL.h"
-//#include "button.h"
+#include "button.h"
 
 #define TFT_DC D2
 #define TFT_CS D6
@@ -17,68 +17,83 @@
 #define darkBlue 0x0190
 #define colour1 0x012a
 
-
-
 DFRobot_ST7789_240x320_HW_SPI screen(TFT_DC, TFT_CS, TFT_RST);
 
 //----------------------------------------------------------------------------------------
 
+#define PADDING 3
+
 class MainMenu {
    private:
     uint8_t cursorPosition = 0;
-    uint8_t cursorMax = 5;
+    static const uint8_t listLength = 5;
+    const String menuItems[listLength] = {"Scan For Devices", "Scan and Retrieve Data", "View Data", "Format SD Card", "About"};
+
+    void SelectItem(uint8_t index);
+    void UnselectItem(uint8_t index);
 
    public:
     void CursorUp();
     void CursorDown();
     void CursorEnter();
+    void Initialise();
 };
 
 void MainMenu::CursorUp() {
-    if (cursorPosition < cursorMax) {
-        screen.fillRoundRect(XMIN + 5, YMIN + 41 + 30 * cursorPosition, XMAX - 10, 27, 10, COLOR_RGB565_BLACK);
+    if (cursorPosition < listLength - 1) {
+        UnselectItem(cursorPosition);
         cursorPosition++;
-        screen.fillRoundRect(XMIN + 5, YMIN + 41 + 30 * cursorPosition, XMAX - 10, 27, 10, colour1);
+        SelectItem(cursorPosition);
     }
 }
 
 void MainMenu::CursorDown() {
     if (cursorPosition > 0) {
-        screen.fillRoundRect(XMIN + 5, YMIN + 41 + 30 * cursorPosition, XMAX - 10, 27, 10, COLOR_RGB565_BLACK);
+        UnselectItem(cursorPosition);
         cursorPosition--;
-        screen.fillRoundRect(XMIN + 5, YMIN + 41 + 30 * cursorPosition, XMAX - 10, 27, 10, colour1);
+        SelectItem(cursorPosition);
     }
 }
 
-class Button {
-   private:
-    const uint8_t pin;
-    bool ready = false;
-    uint32_t timeOfPress = 0;
-    void (*f)();
+void MainMenu::UnselectItem(uint8_t index) {
+    // Draws a black box over the soon-to-be unselected item and redraws the text on top
+    screen.fillRoundRect(XMIN + PADDING, YMIN + 41 + 30 * index, XMAX - 2 * PADDING, 27, 10, COLOR_RGB565_BLACK);
+    screen.setFont(&FreeMono12pt7b);
+    screen.setCursor(5, YMIN + 60 + (index * 30));
+    screen.print(menuItems[index]);
+}
 
-   public:
-    static const uint8_t debounceTime = 150;
+void MainMenu::SelectItem(uint8_t index) {
+    // Draws a highlighter around the selected item redraws the text on top
+    screen.fillRoundRect(XMIN + PADDING, YMIN + 41 + 30 * index, XMAX - 2 * PADDING, 27, 10, colour1);
+    screen.setFont(&FreeMono12pt7b);
+    screen.setCursor(5, YMIN + 60 + (index * 30));
+    screen.print(menuItems[index]);
+    // Draws a bar at the bottom and displays the selected item there
+    screen.fillRect(XMIN, YMAX - 35, XMAX, 35, darkBlue);
+    screen.setFont(&FreeMono18pt7b);
+    screen.setCursor(5, YMAX - 10);
+    screen.print(menuItems[index]);
+}
 
-    Button(uint8_t pinIn) : pin(pinIn) {}
+void MainMenu::Initialise() {
+    screen.setFont(&FreeMono18pt7b);
+    screen.setCursor(65, YMIN + 25);
+    screen.print("Main Menu");
 
-    void setFunction(void (*func)()) { f = func; }
-
-    const uint8_t getPin() { return pin; }
-
-    bool getReady() { return ready; }
-
-    void pressed() {
-        ready = false;
-        timeOfPress = millis();
+    //  Prints the list of menu options on the screen
+    for (int i = 0; i < listLength; i++) {
+        screen.setFont(&FreeMono12pt7b);
+        screen.setCursor(5, YMIN + 60 + (i * 30));
+        screen.print(menuItems[i]);
     }
 
-    void setReady(bool ready) { this->ready = ready; }
+    // Selects the first item in the list
+    SelectItem(0);
+}
 
-    uint32_t getTimeOfPress() { return timeOfPress; }
-
-    void callFunction() { f(); }
-};
+//----------------------------------------------------------------------------------------
+MainMenu mainMenu;
 
 void processButton(Button &btn) {
     if ((digitalRead(btn.getPin()) == LOW) && btn.getReady()) {
@@ -90,9 +105,18 @@ void processButton(Button &btn) {
     }
 }
 
-Button btnUp(D2);
-Button btnDown(D3);
-Button btnEnter(D5);
+void btnUpPressed() {
+    mainMenu.CursorUp();
+}
+void btnDownPressed() {
+    mainMenu.CursorDown();
+}
+void btnEnterPressed() {
+}
+
+Button btnUp(D7, &btnUpPressed);
+Button btnDown(D9, &btnDownPressed);
+Button btnEnter(D5, &btnEnterPressed);
 
 void setup() {
     Serial.begin(115200);
@@ -108,33 +132,7 @@ void setup() {
     screen.setTextColor(COLOR_RGB565_LGRAY);
     screen.setTextWrap(false);
 
-    // highlighter
-    // screen.fillRoundRect(XMIN+5, YMIN+41, XMAX-10, 27,10, colour1);
-    screen.fillRoundRect(XMIN + 5, YMIN + 41 + 30, XMAX - 10, 27, 10, colour1);
-
-    MainMenu mainMenu;
-
-    btnUp.setFunction(&mainMenu.CursorUp);
-    btnDown.setFunction(&mainMenu.CursorDown);
-    btnEnter.setFunction(&mainMenu.CursorEnter);
-
-    screen.setFont(&FreeMono18pt7b);
-    screen.setCursor(65, YMIN + 25);
-    screen.print("Main Menu");
-
-    String menuItems[] = {"Scan For Devices", "Scan and Retrieve Data",
-                          "View Data", "Format SD Card", "About"};
-
-    for (int i = 0; i < 5; i++) {
-        screen.setFont(&FreeMono12pt7b);
-        screen.setCursor(5, YMIN + 60 + (i * 30));
-        screen.print(menuItems[i]);
-    }
-
-    screen.fillRect(XMIN, YMAX - 35, XMAX, 35, darkBlue);
-    screen.setFont(&FreeMono18pt7b);
-    screen.setCursor(5, YMAX - 10);
-    screen.print("Other Options");
+    mainMenu.Initialise();
 }
 
 void loop() {

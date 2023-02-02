@@ -10,10 +10,7 @@ class Button {
    public:
     static const uint8_t debounceTime = 150;
 
-    Button(uint8_t pinIn) : pin(pinIn) {}
-
-    void setFunction(void (*func)()) { f = func; }
-    void setFunction(void (*func)()) { f = func; }
+    Button(uint8_t pinIn, void (*func)()) : pin(pinIn), f(func) {}
 
     const uint8_t getPin() { return pin; }
 
