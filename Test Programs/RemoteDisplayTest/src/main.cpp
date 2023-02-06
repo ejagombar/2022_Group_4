@@ -23,7 +23,7 @@ void btnDownPressedFunc() {
     gui.btnDownPressed();
 }
 void btnEnterPressedFunc() {
-    //gui.btnEnterPressed();
+    // gui.btnEnterPressed();
 }
 
 Button btnUp(D7, &btnUpPressedFunc);

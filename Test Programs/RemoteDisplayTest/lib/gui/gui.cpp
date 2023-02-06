@@ -6,6 +6,7 @@
 
 #include "DFRobot_GDL.h"
 
+
 #define TFT_DC D2
 #define TFT_CS D6
 #define TFT_RST D3
@@ -75,10 +76,10 @@ void MainMenu::SelectItem(uint8_t index) {
     screen.setCursor(5, YMIN + 60 + (index * 30));
     screen.print(menuItems[index]);
     // Draws a bar at the bottom and displays the selected item there
-    screen.fillRect(XMIN, YMAX - 35, XMAX, 35, darkBlue);
-    screen.setFont(&FreeMono18pt7b);
-    screen.setCursor(5, YMAX - 10);
-    screen.print(menuItems[index]);
+    // screen.fillRect(XMIN, YMAX - 35, XMAX, 35, darkBlue);
+    // screen.setFont(&FreeMono18pt7b);
+    // screen.setCursor(5, YMAX - 10);
+    // screen.print(menuItems[index]);
 }
 
 void MainMenu::Initialise() {
@@ -91,9 +92,29 @@ void MainMenu::Initialise() {
         screen.setCursor(5, YMIN + 60 + (i * 30));
         screen.print(menuItems[i]);
     }
+    DrawNavbar();
     // Selects the first item in the list
     SelectItem(0);
 }
 
-//--------------------------------------------------------------------------------------------//
+void MainMenu::DrawNavbar() {
+    const uint8_t BackgroundHeight = 25;
+    const u_int8_t textHeight = 6;
+    const String menuItems[3] = {"Up", "Down", "Select"};
 
+    screen.setFont(&FreeMono12pt7b);
+
+    screen.fillRect(XMIN, YMAX - BackgroundHeight, XMAX, BackgroundHeight, colour1);
+
+    screen.drawRect((XMAX / 3) - 1, YMAX - BackgroundHeight, 2, BackgroundHeight, COLOR_RGB565_BLACK);
+    screen.drawRect(((2 * XMAX) / 3) - 1, YMAX - BackgroundHeight, 2, BackgroundHeight, COLOR_RGB565_BLACK);
+
+    //7 is both the width of a character and the maximum number of characters that can fit in the box
+    for (int i = 0; i < 3; i++) {
+        int padding = (7 - menuItems[i].length())*7;
+        screen.setCursor((i * XMAX / 3) + 4 + padding, YMAX - textHeight);
+        screen.print(menuItems[i]);
+    }
+}
+
+//--------------------------------------------------------------------------------------------//

@@ -16,6 +16,7 @@ class MainMenu {
     void CursorDown();
     void CursorEnter();
     void Initialise();
+    void DrawNavbar();
 };
 
 class GUI {
