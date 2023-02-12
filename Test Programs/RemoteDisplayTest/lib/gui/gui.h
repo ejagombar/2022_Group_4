@@ -1,5 +1,26 @@
 #include <Arduino.h>
 
+//--------------------------------------------------------------------------------------------//
+
+// class ListMenuView {
+//    private:
+//     uint8_t cursorPosition;
+//     static const uint8_t highLightPadding;
+//     static const uint8_t listLength;
+//     const String menuItems[5];
+
+//     virtual void SelectItem(uint8_t index);
+//     virtual void UnselectItem(uint8_t index);
+
+//    public:
+//     virtual ~ListMenuView(){};
+//     virtual void LeftBtn();
+//     virtual void MiddleBtn();
+//     virtual void RightBtn();
+//     virtual void InitScreen() = 0;
+// };
+
+//--------------------------------------------------------------------------------------------//
 
 class MainMenu {
    private:
@@ -12,12 +33,15 @@ class MainMenu {
     void UnselectItem(uint8_t index);
 
    public:
-    void CursorUp();
-    void CursorDown();
-    void CursorEnter();
-    void Initialise();
-    void DrawNavbar();
+    void LeftBtn();
+    void MiddleBtn();
+    void RightBtn();
+    void InitScreen();
+    ~MainMenu(){};
+    MainMenu(){};
 };
+
+//--------------------------------------------------------------------------------------------//
 
 class GUI {
    private:
