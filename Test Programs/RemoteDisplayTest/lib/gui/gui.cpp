@@ -1,28 +1,6 @@
 #include "gui.h"
 
-#include "screen.h"
-
-Interface::Interface() {
-    screen.begin();
-    screen.setRotation(3);
-    screen.setTextSize(1);
-    screen.fillScreen(COLOR_RGB565_BLACK);
-    screen.setTextColor(COLOR_RGB565_LGRAY);
-    screen.setTextWrap(false);
-    mainMenu.InitScreen();
-}
-
-void Interface::btn0PressedFunc() {
-    mainMenu.btn0PressedFunc();
-}
-
-void Interface::btn1PressedFunc() {
-    mainMenu.btn1PressedFunc();
-}
-
-void Interface::btn2PressedFunc() {
-    mainMenu.btn2PressedFunc();
-}
+DFRobot_ST7789_240x320_HW_SPI screen(TFT_DC, TFT_CS, TFT_RST);
 
 //--------------------------------------------------------------------------------------------//
 
@@ -62,6 +40,13 @@ void MainMenu::SelectItem(uint8_t index) {
 }
 
 void MainMenu::InitScreen() {
+    screen.begin();
+    screen.setRotation(3);
+    screen.setTextSize(1);
+    screen.fillScreen(COLOR_RGB565_BLACK);
+    screen.setTextColor(COLOR_RGB565_LGRAY);
+    screen.setTextWrap(false);
+
     screen.setFont(&FreeMono18pt7b);
     screen.setCursor(65, YMIN + 25);
     screen.print("Main Menu");

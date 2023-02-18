@@ -4,7 +4,15 @@
 #include "gui.h"
 
 //----------------------------------------------------------------------------------------
-Interface interface;
+enum State {
+    mainMenuState,
+    Start,
+    Stop,
+    ChangeSpeed
+};
+
+MainMenu mainMenu;
+
 
 void processButton(Button &btn) {
     if ((digitalRead(btn.getPin()) == LOW) && btn.getReady()) {
@@ -17,13 +25,13 @@ void processButton(Button &btn) {
 }
 
 void btn0PressedFunc() {
-    interface.btn0PressedFunc();
+    mainMenu.btn0PressedFunc();
 }
 void btn1PressedFunc() {
-    interface.btn1PressedFunc();
+    mainMenu.btn1PressedFunc();
 }
 void btn2PressedFunc() {
-    interface.btn2PressedFunc();
+    mainMenu.btn2PressedFunc();
 }
 
 Button btnUp(D7, &btn0PressedFunc);
@@ -36,6 +44,8 @@ void setup() {
     pinMode(btnUp.getPin(), INPUT_PULLUP);
     pinMode(btnDown.getPin(), INPUT_PULLUP);
     pinMode(btnEnter.getPin(), INPUT_PULLUP);
+
+    mainMenu.InitScreen();
 }
 
 void loop() {
