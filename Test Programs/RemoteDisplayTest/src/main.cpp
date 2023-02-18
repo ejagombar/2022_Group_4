@@ -4,14 +4,10 @@
 #include "gui.h"
 
 //----------------------------------------------------------------------------------------
-enum State {
-    mainMenuState,
-    Start,
-    Stop,
-    ChangeSpeed
-};
 
 MainMenu mainMenu;
+DeviceSetup deviceSetup;
+State programState = mainMenuState;
 
 
 void processButton(Button &btn) {
@@ -25,31 +21,58 @@ void processButton(Button &btn) {
 }
 
 void btn0PressedFunc() {
-    mainMenu.btn0PressedFunc();
+    switch (programState) {
+        case mainMenuState:
+            mainMenu.btnUpPressed();
+            break;
+        case setUpState:
+            deviceSetup.btnUpPressed();
+            break;
+    }
 }
 void btn1PressedFunc() {
-    mainMenu.btn1PressedFunc();
+    switch (programState) {
+        case mainMenuState:
+            mainMenu.btnDownPressed();
+            break;
+        case setUpState:
+            deviceSetup.btnDownPressed();
+            break;
+    }
 }
 void btn2PressedFunc() {
-    mainMenu.btn2PressedFunc();
+    switch (programState) {
+        case mainMenuState:
+            if (mainMenu.btnEnterPressed() == setUpState) {
+                deviceSetup.InitScreen();
+                
+            }
+            programState = mainMenu.btnEnterPressed();
+            break;
+        case setUpState:
+            break;
+    }
+    Serial.println(programState);
 }
 
-Button btnUp(D7, &btn0PressedFunc);
-Button btnDown(D9, &btn1PressedFunc);
-Button btnEnter(D5, &btn2PressedFunc);
+Button btn0(D7, &btn0PressedFunc);
+Button btn1(D9, &btn1PressedFunc);
+Button btn2(D5, &btn2PressedFunc);
 
 void setup() {
     Serial.begin(115200);
 
-    pinMode(btnUp.getPin(), INPUT_PULLUP);
-    pinMode(btnDown.getPin(), INPUT_PULLUP);
-    pinMode(btnEnter.getPin(), INPUT_PULLUP);
+    pinMode(btn0.getPin(), INPUT_PULLUP);
+    pinMode(btn1.getPin(), INPUT_PULLUP);
+    pinMode(btn2.getPin(), INPUT_PULLUP);
 
     mainMenu.InitScreen();
+    programState = mainMenuState;
 }
 
 void loop() {
-    processButton(btnUp);
-    processButton(btnDown);
-    processButton(btnEnter);
+    processButton(btn0);
+    processButton(btn1);
+    processButton(btn2);
+
 }

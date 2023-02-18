@@ -4,7 +4,7 @@ DFRobot_ST7789_240x320_HW_SPI screen(TFT_DC, TFT_CS, TFT_RST);
 
 //--------------------------------------------------------------------------------------------//
 
-void MainMenu::btn1PressedFunc() {
+void MainMenu::btnDownPressed() {
     if (cursorPosition < listLength - 1) {
         UnselectItem(cursorPosition);
         cursorPosition++;
@@ -12,7 +12,7 @@ void MainMenu::btn1PressedFunc() {
     }
 }
 
-void MainMenu::btn0PressedFunc() {
+void MainMenu::btnUpPressed() {
     if (cursorPosition > 0) {
         UnselectItem(cursorPosition);
         cursorPosition--;
@@ -20,7 +20,17 @@ void MainMenu::btn0PressedFunc() {
     }
 }
 
-void MainMenu::btn2PressedFunc() {
+State MainMenu::btnEnterPressed() {
+    State selection;
+    switch (cursorPosition) {
+        case 0:
+            selection = setUpState;
+            break;
+        case 1:
+            selection = settingsState;
+            break;
+    };
+    return selection;
 }
 
 void MainMenu::UnselectItem(uint8_t index) {
@@ -79,3 +89,47 @@ void MainMenu::InitScreen() {
 }
 
 //--------------------------------------------------------------------------------------------//
+
+void DeviceSetup::InitScreen() {
+    screen.setRotation(3);
+    screen.setTextSize(1);
+    screen.fillScreen(COLOR_RGB565_BLACK);
+    screen.setTextColor(COLOR_RGB565_LGRAY);
+    screen.setTextWrap(false);
+
+    screen.setFont(&FreeMono18pt7b);
+    screen.setCursor(38, YMIN + 25);
+    screen.print("Device Setup");
+
+    const uint8_t NavBarHeight = 25;
+    const u_int8_t textHeight = 6;
+    const String menuItems[3] = {"Start", "Stop", "Back"};
+
+    screen.setFont(&FreeMono12pt7b);
+
+    screen.fillRect(XMIN, YMAX - NavBarHeight, XMAX, NavBarHeight, colour1);
+
+    screen.drawRect((XMAX / 3) - 1, YMAX - NavBarHeight, 2, NavBarHeight, COLOR_RGB565_BLACK);
+    screen.drawRect(((2 * XMAX) / 3) - 1, YMAX - NavBarHeight, 2, NavBarHeight, COLOR_RGB565_BLACK);
+
+    // 7 is both the width of a character and the maximum number of characters that can fit in the box
+    for (int i = 0; i < 3; i++) {
+        int padding = (7 - menuItems[i].length()) * 7;
+        screen.setCursor((i * XMAX / 3) + 4 + padding, YMAX - textHeight);
+        screen.print(menuItems[i]);
+    }
+}
+
+void DeviceSetup::btnDownPressed() {
+    screen.setCursor(5, YMIN + 60 + 30);
+    screen.print("testThis");
+}
+
+void DeviceSetup::btnUpPressed() {
+        screen.setCursor(5, YMIN + 60 + 60);
+    screen.print("testThat");
+}
+
+void DeviceSetup::btnEnterPressed() {
+
+}
