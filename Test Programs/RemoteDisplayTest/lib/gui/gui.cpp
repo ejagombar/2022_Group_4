@@ -1,6 +1,6 @@
 #include "gui.h"
 
-DFRobot_ST7789_240x320_HW_SPI screen(TFT_DC, TFT_CS, TFT_RST);
+#include "screen.h"
 
 Interface::Interface() {
     screen.begin();
