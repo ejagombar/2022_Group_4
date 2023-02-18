@@ -1,26 +1,22 @@
 #include <Arduino.h>
 
-//--------------------------------------------------------------------------------------------//
+#include <vector>
 
-// class ListMenuView {
-//    private:
-//     uint8_t cursorPosition;
-//     static const uint8_t highLightPadding;
-//     static const uint8_t listLength;
-//     const String menuItems[5];
+#include "DFRobot_GDL.h"
 
-//     virtual void SelectItem(uint8_t index);
-//     virtual void UnselectItem(uint8_t index);
+#define TFT_DC D2
+#define TFT_CS D6
+#define TFT_RST D3
 
-//    public:
-//     virtual ~ListMenuView(){};
-//     virtual void LeftBtn();
-//     virtual void MiddleBtn();
-//     virtual void RightBtn();
-//     virtual void InitScreen() = 0;
-// };
+#define XMIN 0
+#define YMIN 0
+#define XMAX 320
+#define YMAX 240
 
-//--------------------------------------------------------------------------------------------//
+#define darkBlue 0x0190
+#define colour1 0x012a
+
+enum State { MainMenuState, DeviceSetupState, SettingsState };
 
 class MainMenu {
    private:
@@ -33,9 +29,9 @@ class MainMenu {
     void UnselectItem(uint8_t index);
 
    public:
-    void LeftBtn();
-    void MiddleBtn();
-    void RightBtn();
+    void btn0PressedFunc();
+    void btn1PressedFunc();
+    void btn2PressedFunc();
     void InitScreen();
     ~MainMenu(){};
     MainMenu(){};
@@ -43,14 +39,14 @@ class MainMenu {
 
 //--------------------------------------------------------------------------------------------//
 
-class GUI {
+class Interface {
    private:
     MainMenu mainMenu;
 
    public:
-    GUI();
+    Interface();
     void initilise();
-    void btnUpPressed();
-    void btnDownPressed();
-    void btnEnterPressed();
+    void btn0PressedFunc();
+    void btn1PressedFunc();
+    void btn2PressedFunc();
 };

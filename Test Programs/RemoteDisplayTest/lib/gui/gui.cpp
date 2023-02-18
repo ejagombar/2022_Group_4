@@ -1,26 +1,8 @@
 #include "gui.h"
 
-#include <Arduino.h>
-
-#include <vector>
-
-#include "DFRobot_GDL.h"
-
-#define TFT_DC D2
-#define TFT_CS D6
-#define TFT_RST D3
-
-#define XMIN 0
-#define YMIN 0
-#define XMAX screen.width()
-#define YMAX screen.height()
-
-#define darkBlue 0x0190
-#define colour1 0x012a
-
 DFRobot_ST7789_240x320_HW_SPI screen(TFT_DC, TFT_CS, TFT_RST);
 
-GUI::GUI() {
+Interface::Interface() {
     screen.begin();
     screen.setRotation(3);
     screen.setTextSize(1);
@@ -30,21 +12,21 @@ GUI::GUI() {
     mainMenu.InitScreen();
 }
 
-void GUI::btnUpPressed() {
-    mainMenu.LeftBtn();
+void Interface::btn0PressedFunc() {
+    mainMenu.btn0PressedFunc();
 }
 
-void GUI::btnDownPressed() {
-    mainMenu.MiddleBtn();
+void Interface::btn1PressedFunc() {
+    mainMenu.btn1PressedFunc();
 }
 
-void GUI::btnEnterPressed() {
-    mainMenu.RightBtn();
+void Interface::btn2PressedFunc() {
+    mainMenu.btn2PressedFunc();
 }
 
 //--------------------------------------------------------------------------------------------//
 
-void MainMenu::MiddleBtn() {
+void MainMenu::btn1PressedFunc() {
     if (cursorPosition < listLength - 1) {
         UnselectItem(cursorPosition);
         cursorPosition++;
@@ -52,7 +34,7 @@ void MainMenu::MiddleBtn() {
     }
 }
 
-void MainMenu::LeftBtn() {
+void MainMenu::btn0PressedFunc() {
     if (cursorPosition > 0) {
         UnselectItem(cursorPosition);
         cursorPosition--;
@@ -60,7 +42,7 @@ void MainMenu::LeftBtn() {
     }
 }
 
-void MainMenu::RightBtn() {
+void MainMenu::btn2PressedFunc() {
 }
 
 void MainMenu::UnselectItem(uint8_t index) {

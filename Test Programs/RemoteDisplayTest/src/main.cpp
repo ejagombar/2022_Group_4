@@ -4,7 +4,7 @@
 #include "gui.h"
 
 //----------------------------------------------------------------------------------------
-GUI gui;
+Interface interface;
 
 void processButton(Button &btn) {
     if ((digitalRead(btn.getPin()) == LOW) && btn.getReady()) {
@@ -16,19 +16,19 @@ void processButton(Button &btn) {
     }
 }
 
-void btnUpPressedFunc() {
-    gui.btnUpPressed();
+void btn0PressedFunc() {
+    interface.btn0PressedFunc();
 }
-void btnDownPressedFunc() {
-    gui.btnDownPressed();
+void btn1PressedFunc() {
+    interface.btn1PressedFunc();
 }
-void btnEnterPressedFunc() {
-    // gui.btnEnterPressed();
+void btn2PressedFunc() {
+    interface.btn2PressedFunc();
 }
 
-Button btnUp(D7, &btnUpPressedFunc);
-Button btnDown(D9, &btnDownPressedFunc);
-Button btnEnter(D5, &btnEnterPressedFunc);
+Button btnUp(D7, &btn0PressedFunc);
+Button btnDown(D9, &btn1PressedFunc);
+Button btnEnter(D5, &btn2PressedFunc);
 
 void setup() {
     Serial.begin(115200);
