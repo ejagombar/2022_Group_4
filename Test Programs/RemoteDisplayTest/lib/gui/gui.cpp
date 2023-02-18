@@ -24,7 +24,7 @@ void printMenuBar(const String menuItems[3]) {
 
 //--------------------------------------------------------------------------------------------//
 
-MainMenu::MainMenu(){
+MainMenu::MainMenu() {
     screen.begin();
 }
 
@@ -51,7 +51,10 @@ State MainMenu::btnEnterPressed() {
             selection = setUpState;
             break;
         case 1:
-            selection = settingsState;
+            selection = scanState;
+            break;
+        default:
+            selection = mainMenuState;
             break;
     };
     return selection;
@@ -61,7 +64,7 @@ void MainMenu::UnselectItem(uint8_t index) {
     // Draws a black box over the soon-to-be unselected item and redraws the text on top
     screen.fillRoundRect(XMIN + highLightPadding, YMIN + 41 + 30 * index, XMAX - 2 * highLightPadding, 27, 10, COLOR_RGB565_BLACK);
     screen.setFont(&FreeMono12pt7b);
-    screen.setCursor(5, YMIN + 60 + (index * 30));
+    screen.setCursor(10, YMIN + 60 + (index * 30));
     screen.print(menuItems[index]);
 }
 
@@ -69,12 +72,11 @@ void MainMenu::SelectItem(uint8_t index) {
     // Draws a highlighter around the selected item redraws the text on top
     screen.fillRoundRect(XMIN + highLightPadding, YMIN + 41 + 30 * index, XMAX - 2 * highLightPadding, 27, 10, colour1);
     screen.setFont(&FreeMono12pt7b);
-    screen.setCursor(5, YMIN + 60 + (index * 30));
+    screen.setCursor(10, YMIN + 60 + (index * 30));
     screen.print(menuItems[index]);
 }
 
 void MainMenu::InitScreen() {
-    
     screen.setRotation(3);
     screen.setTextSize(1);
     screen.fillScreen(COLOR_RGB565_BLACK);
@@ -87,7 +89,7 @@ void MainMenu::InitScreen() {
     //  Prints the list of menu options on the screen
     for (int i = 0; i < listLength; i++) {
         screen.setFont(&FreeMono12pt7b);
-        screen.setCursor(5, YMIN + 60 + (i * 30));
+        screen.setCursor(10, YMIN + 60 + (i * 30));
         screen.print(menuItems[i]);
     }
 
@@ -125,5 +127,33 @@ void DeviceSetup::btnUpPressed() {
 }
 
 void DeviceSetup::btnEnterPressed() {
+}
 
+//--------------------------------------------------------------------------------------------//
+
+void DeviceScan::InitScreen() {
+    screen.setRotation(3);
+    screen.setTextSize(1);
+    screen.fillScreen(COLOR_RGB565_BLACK);
+    screen.setTextColor(COLOR_RGB565_LGRAY);
+    screen.setTextWrap(true);
+
+    screen.setFont(&FreeMono18pt7b);
+    screen.setCursor(38, YMIN + 25);
+    screen.print("Scan Devices");
+
+    const String menuItems[3] = {"Start", "Stop", "Back"};
+    printMenuBar(menuItems);
+    screen.setCursor(5, YMIN + 60 + 30);
+}
+
+void DeviceScan::btnDownPressed() {
+    screen.println("Scanning...");
+}
+
+void DeviceScan::btnUpPressed() {
+    screen.print("Stopping Scanning");
+}
+
+void DeviceScan::btnEnterPressed() {
 }

@@ -19,7 +19,7 @@
 enum State {
     mainMenuState,
     setUpState,
-    settingsState,
+    scanState,
     helpState
 };
 
@@ -31,7 +31,7 @@ class MainMenu {
     uint8_t cursorPosition = 0;
     static const uint8_t highLightPadding = 5;
     static const uint8_t listLength = 5;
-    const String menuItems[listLength] = {"Setup Monitor", "Scan and Retrieve Data", "View Data", "Format SD Card", "About"};
+    const String menuItems[listLength] = {"Setup Monitor", "Scan Monitors", "View Data", "Format SD Card", "About"};
 
     void SelectItem(uint8_t index);
     void UnselectItem(uint8_t index);
@@ -60,4 +60,15 @@ class DeviceSetup {
     void InitScreen();
     ~DeviceSetup(){};
     DeviceSetup(){};
+};
+
+class DeviceScan {
+
+   public:
+    void btnUpPressed();
+    void btnDownPressed();
+    void btnEnterPressed();
+    void InitScreen();
+    ~DeviceScan(){};
+    DeviceScan(){};
 };
