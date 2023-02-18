@@ -42,7 +42,7 @@ class MainMenu {
     State btnEnterPressed();
     void InitScreen();
     ~MainMenu(){};
-    MainMenu(){};
+    MainMenu();
 };
 
 //--------------------------------------------------------------------------------------------//

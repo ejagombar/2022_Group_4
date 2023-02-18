@@ -43,13 +43,18 @@ void btn1PressedFunc() {
 void btn2PressedFunc() {
     switch (programState) {
         case mainMenuState:
+
             if (mainMenu.btnEnterPressed() == setUpState) {
-                deviceSetup.InitScreen();
-                
+                deviceSetup.InitScreen(); 
             }
             programState = mainMenu.btnEnterPressed();
+
             break;
         case setUpState:
+
+            programState = mainMenuState;
+            mainMenu.InitScreen();
+            
             break;
     }
     Serial.println(programState);

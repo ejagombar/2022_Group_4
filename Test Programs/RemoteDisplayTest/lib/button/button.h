@@ -8,7 +8,7 @@ class Button {
     void (*f)();
 
    public:
-    static const uint8_t debounceTime = 150;
+    static const uint8_t debounceTime = 200;
 
     Button(uint8_t pinIn, void (*func)()) : pin(pinIn), f(func) {}
 
