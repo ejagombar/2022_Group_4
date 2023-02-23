@@ -16,37 +16,59 @@
 #define darkBlue 0x0190
 #define colour1 0x012a
 
-enum State { MainMenuState, DeviceSetupState, SettingsState };
+enum State {
+    mainMenuState,
+    setUpState,
+    scanState,
+    helpState
+};
+
+
+//--------------------------------------------------------------------------------------------//
 
 class MainMenu {
    private:
     uint8_t cursorPosition = 0;
     static const uint8_t highLightPadding = 5;
     static const uint8_t listLength = 5;
-    const String menuItems[listLength] = {"Scan For Devices", "Scan and Retrieve Data", "View Data", "Format SD Card", "About"};
+    const String menuItems[listLength] = {"Setup Monitor", "Scan Monitors", "View Data", "Format SD Card", "About"};
 
     void SelectItem(uint8_t index);
     void UnselectItem(uint8_t index);
 
    public:
-    void btn0PressedFunc();
-    void btn1PressedFunc();
-    void btn2PressedFunc();
+    void btnUpPressed();
+    void btnDownPressed();
+    State btnEnterPressed();
     void InitScreen();
     ~MainMenu(){};
-    MainMenu(){};
+    MainMenu();
 };
 
 //--------------------------------------------------------------------------------------------//
 
-class Interface {
+class DeviceSetup {
    private:
-    MainMenu mainMenu;
+ 
+    void SelectItem(uint8_t index);
+    void UnselectItem(uint8_t index);
 
    public:
-    Interface();
-    void initilise();
-    void btn0PressedFunc();
-    void btn1PressedFunc();
-    void btn2PressedFunc();
+    void btnUpPressed();
+    void btnDownPressed();
+    void btnEnterPressed();
+    void InitScreen();
+    ~DeviceSetup(){};
+    DeviceSetup(){};
+};
+
+class DeviceScan {
+
+   public:
+    void btnUpPressed();
+    void btnDownPressed();
+    void btnEnterPressed();
+    void InitScreen();
+    ~DeviceScan(){};
+    DeviceScan(){};
 };
