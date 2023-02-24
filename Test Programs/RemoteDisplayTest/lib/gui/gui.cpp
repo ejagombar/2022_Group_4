@@ -53,6 +53,9 @@ State MainMenu::btnEnterPressed() {
         case 1:
             selection = scanState;
             break;
+        case 4:
+            selection = helpState;
+            break;
         default:
             selection = mainMenuState;
             break;
@@ -156,4 +159,46 @@ void DeviceScan::btnUpPressed() {
 }
 
 void DeviceScan::btnEnterPressed() {
+}
+
+//--------------------------------------------------------------------------------------------//
+
+void HelpPage::InitScreen() {
+    screen.setRotation(3);
+    screen.setTextSize(1);
+    screen.fillScreen(COLOR_RGB565_BLACK);
+    screen.setTextColor(COLOR_RGB565_LGRAY);
+    screen.setTextWrap(true);
+
+    screen.setFont(&FreeMono18pt7b);
+    screen.setCursor(124, YMIN + 25);
+    screen.print("Help");
+
+    const String menuItems[3] = {"Prev", "Next", "Back"};
+
+    printMenuBar(menuItems);
+    drawPage();
+}
+
+void HelpPage::btnNextPressed() {
+    if (pageNum < (pageMax - 1)) {
+        pageNum++;
+        drawPage();
+    }
+}
+
+void HelpPage::btnPrevPressed() {
+    if (pageNum > 0) {
+        pageNum--;
+        drawPage();
+    }
+}
+
+void HelpPage::btnBackPressed() {
+}
+
+void HelpPage::drawPage() {
+    screen.fillRect(XMIN, YMIN + 45, XMAX, 165, COLOR_RGB565_BLACK);
+    screen.setCursor(5, YMIN + 60);
+    screen.print(contents[pageNum]);
 }

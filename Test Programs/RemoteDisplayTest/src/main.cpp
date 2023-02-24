@@ -8,6 +8,8 @@
 MainMenu mainMenu;
 DeviceSetup deviceSetup;
 DeviceScan deviceScan;
+HelpPage helpPage;
+
 State programState = mainMenuState;
 
 void processButton(Button &btn) {
@@ -31,6 +33,9 @@ void btn0PressedFunc() {
         case scanState:
             deviceScan.btnUpPressed();
             break;
+        case helpState:
+            helpPage.btnPrevPressed();
+            break;
     }
 }
 void btn1PressedFunc() {
@@ -44,19 +49,27 @@ void btn1PressedFunc() {
         case scanState:
             deviceScan.btnDownPressed();
             break;
+        case helpState:
+            helpPage.btnNextPressed();
+            break;
     }
 }
 void btn2PressedFunc() {
     switch (programState) {
         case mainMenuState:
 
-            if (mainMenu.btnEnterPressed() == setUpState) {
+            programState = mainMenu.btnEnterPressed();
+            Serial.println(programState);
+            if (programState == setUpState) {
                 deviceSetup.InitScreen();
             }
-            if (mainMenu.btnEnterPressed() == scanState) {
+            if (programState == scanState) {
                 deviceScan.InitScreen();
             }
-            programState = mainMenu.btnEnterPressed();
+            if (programState == helpState) {
+                helpPage.InitScreen();
+            }
+            
 
             break;
         case setUpState:
@@ -67,6 +80,13 @@ void btn2PressedFunc() {
             break;
 
         case scanState:
+
+            programState = mainMenuState;
+            mainMenu.InitScreen();
+
+            break;
+
+        case helpState:
 
             programState = mainMenuState;
             mainMenu.InitScreen();
