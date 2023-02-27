@@ -4,7 +4,13 @@
 #include "gui.h"
 
 //----------------------------------------------------------------------------------------
-GUI gui;
+
+MainMenu mainMenu;
+DeviceSetup deviceSetup;
+DeviceScan deviceScan;
+HelpPage helpPage;
+
+State programState = mainMenuState;
 
 void processButton(Button &btn) {
     if ((digitalRead(btn.getPin()) == LOW) && btn.getReady()) {
@@ -16,30 +22,97 @@ void processButton(Button &btn) {
     }
 }
 
-void btnUpPressedFunc() {
-    gui.btnUpPressed();
+void btn0PressedFunc() {
+    switch (programState) {
+        case mainMenuState:
+            mainMenu.btnUpPressed();
+            break;
+        case setUpState:
+            deviceSetup.btnUpPressed();
+            break;
+        case scanState:
+            deviceScan.btnUpPressed();
+            break;
+        case helpState:
+            helpPage.btnPrevPressed();
+            break;
+    }
 }
-void btnDownPressedFunc() {
-    gui.btnDownPressed();
+void btn1PressedFunc() {
+    switch (programState) {
+        case mainMenuState:
+            mainMenu.btnDownPressed();
+            break;
+        case setUpState:
+            deviceSetup.btnDownPressed();
+            break;
+        case scanState:
+            deviceScan.btnDownPressed();
+            break;
+        case helpState:
+            helpPage.btnNextPressed();
+            break;
+    }
 }
-void btnEnterPressedFunc() {
-    //gui.btnEnterPressed();
+void btn2PressedFunc() {
+    switch (programState) {
+        case mainMenuState:
+
+            programState = mainMenu.btnEnterPressed();
+            Serial.println(programState);
+            if (programState == setUpState) {
+                deviceSetup.InitScreen();
+            }
+            if (programState == scanState) {
+                deviceScan.InitScreen();
+            }
+            if (programState == helpState) {
+                helpPage.InitScreen();
+            }
+            
+
+            break;
+        case setUpState:
+
+            programState = mainMenuState;
+            mainMenu.InitScreen();
+
+            break;
+
+        case scanState:
+
+            programState = mainMenuState;
+            mainMenu.InitScreen();
+
+            break;
+
+        case helpState:
+
+            programState = mainMenuState;
+            mainMenu.InitScreen();
+
+            break;
+    }
+    Serial.println(programState);
 }
 
-Button btnUp(D7, &btnUpPressedFunc);
-Button btnDown(D9, &btnDownPressedFunc);
-Button btnEnter(D5, &btnEnterPressedFunc);
+Button btn0(D7, &btn0PressedFunc);
+Button btn1(D9, &btn1PressedFunc);
+Button btn2(D5, &btn2PressedFunc);
 
 void setup() {
     Serial.begin(115200);
 
-    pinMode(btnUp.getPin(), INPUT_PULLUP);
-    pinMode(btnDown.getPin(), INPUT_PULLUP);
-    pinMode(btnEnter.getPin(), INPUT_PULLUP);
+    pinMode(btn0.getPin(), INPUT_PULLUP);
+    pinMode(btn1.getPin(), INPUT_PULLUP);
+    pinMode(btn2.getPin(), INPUT_PULLUP);
+
+    mainMenu.InitScreen();
+    programState = mainMenuState;
 }
 
 void loop() {
-    processButton(btnUp);
-    processButton(btnDown);
-    processButton(btnEnter);
+    processButton(btn0);
+    processButton(btn1);
+    processButton(btn2);
 }
