@@ -82,11 +82,18 @@ void setup() {
     print_wakeup_reason();
     Serial.println("The time is " + rtc.now().timestamp());
     esp_sleep_enable_ext0_wakeup(GPIO_NUM_12, 0);
+    //Turn On board LED on whilst board is not in deep sleep
+    pinMode(D9,OUTPUT);
+    digitalWrite(D9,HIGH);
+    
+    //Turn Digital Pin on to power sensors
+    pinMode(D5,OUTPUT);
+    digitalWrite(D5,HIGH);
 
     setAlarmInterval(1);
 
     Serial.println("Going to sleep");
-    delay(1000);
+    delay(4000);
     hibernate();
     Serial.println("This shouldnt print");
 }
