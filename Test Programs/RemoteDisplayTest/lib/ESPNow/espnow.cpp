@@ -20,18 +20,44 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {
 }
 
 int initESPNow() {
-    WiFi.mode(WIFI_STA);
+    if (WiFi.mode(WIFI_STA) == false) {
+        Serial.println("Error initializing Wifi");
+        return WifiModeFail;
+    }
+
+    if (esp_now_init() != ESP_OK) {
+        Serial.println("Error initializing ESP-NOW");
+        return ESPNowFail;
+    }
 
     esp_wifi_set_mac(WIFI_IF_STA, &MACAddress[0]);
 
-    if (esp_now_init() != ESP_OK) {
-        Serial.println("esp_now_init() failed");
-        return ESP_FAIL;
-    }
-
-    Serial.print("[NEW] ESP32 Board MAC Address:  ");
+    Serial.print("ESP Now has been initialized. \nMAC Address: ");
     Serial.println(WiFi.macAddress());
 
+    return Success;
+}
+
+int deinitESPNow() {
+    if (esp_now_deinit() != ESP_OK) {
+        Serial.println("Error deinitializing ESP-NOW");
+        return ESPNowFail;
+    }
+
+    if (WiFi.mode(WIFI_OFF) == false) {
+        Serial.println("Error deinitializing Wifi");
+        return WifiModeFail;
+    }
+
+    Serial.print("ESP Now has been deinitialized.");
+
+    return Success;
+}
+
+void setupRecieveData() {
     esp_now_register_recv_cb(OnDataRecv);
-    // esp_now_register_send_cb(OnDataSent);
+}
+
+void closeRecieveData() {
+    esp_now_unregister_recv_cb();
 }
