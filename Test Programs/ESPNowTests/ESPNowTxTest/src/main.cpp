@@ -13,7 +13,7 @@
 #include <WiFi.h>
 
 // REPLACE WITH THE RECEIVER'S MAC Address
-uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+uint8_t broadcastAddress[] = {0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
 
 // Structure example to send data
 // Must match the receiver structure
@@ -40,7 +40,7 @@ void setup() {
   Serial.begin(115200);
 
   // Set device as a Wi-Fi Station
-  WiFi.mode(WIFI_STA);
+ 
 
   // Init ESP-NOW
   if (esp_now_init() != ESP_OK) {
@@ -50,7 +50,7 @@ void setup() {
 
   // Once ESPNow is successfully Init, we will register for Send CB to
   // get the status of Trasnmitted packet
-  esp_now_register_send_cb(OnDataSent);
+ 
   
   // Register peer
   memcpy(peerInfo.peer_addr, broadcastAddress, 6);

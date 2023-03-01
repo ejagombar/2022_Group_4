@@ -2,6 +2,7 @@
 
 #include "button.h"
 #include "gui.h"
+#include "espnow.h"
 
 //----------------------------------------------------------------------------------------
 
@@ -62,6 +63,7 @@ void btn2PressedFunc() {
             Serial.println(programState);
             if (programState == setUpState) {
                 deviceSetup.InitScreen();
+                initESPNow();
             }
             if (programState == scanState) {
                 deviceScan.InitScreen();
