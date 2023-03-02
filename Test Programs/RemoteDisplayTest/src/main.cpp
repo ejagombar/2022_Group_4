@@ -1,8 +1,8 @@
 #include <Arduino.h>
 
 #include "button.h"
-#include "gui.h"
 #include "espnow.h"
+#include "gui.h"
 
 //----------------------------------------------------------------------------------------
 
@@ -64,6 +64,7 @@ void btn2PressedFunc() {
             if (programState == setUpState) {
                 deviceSetup.InitScreen();
                 initESPNow();
+                setupRecieveData();
             }
             if (programState == scanState) {
                 deviceScan.InitScreen();
@@ -71,11 +72,12 @@ void btn2PressedFunc() {
             if (programState == helpState) {
                 helpPage.InitScreen();
             }
-            
 
             break;
         case setUpState:
 
+            closeRecieveData();
+            deinitESPNow();
             programState = mainMenuState;
             mainMenu.InitScreen();
 
