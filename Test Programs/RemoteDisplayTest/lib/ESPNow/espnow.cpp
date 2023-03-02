@@ -1,6 +1,39 @@
 #include "espnow.h"
 
 struct_message myData;
+struct_pairing pairingData;
+
+esp_now_peer_info_t slave;
+int chan; 
+
+bool addPeer(const uint8_t *peer_addr) {      // add pairing
+  memset(&slave, 0, sizeof(slave));
+  const esp_now_peer_info_t *peer = &slave;
+  memcpy(slave.peer_addr, peer_addr, 6);
+  
+  slave.channel = chan; // pick a channel
+  slave.encrypt = 0; // no encryption
+  // check if the peer exists
+  bool exists = esp_now_is_peer_exist(slave.peer_addr);
+  if (exists) {
+    // Slave already paired.
+    Serial.println("Already Paired");
+    return true;
+  }
+  else {
+    esp_err_t addStatus = esp_now_add_peer(peer);
+    if (addStatus == ESP_OK) {
+      // Pair success
+      Serial.println("Pair success");
+      return true;
+    }
+    else 
+    {
+      Serial.println("Pair failed");
+      return false;
+    }
+  }
+} 
 
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
     Serial.print("\r\nLast Packet Send Status:\t");
