@@ -202,3 +202,31 @@ void HelpPage::drawPage() {
     screen.setCursor(5, YMIN + 60);
     screen.print(contents[pageNum]);
 }
+
+//--------------------------------------------------------------------------------------------//
+
+void ErrorPage::InitScreen(String msg) {
+    screen.setRotation(3);
+    screen.setTextSize(1);
+    screen.fillScreen(COLOR_RGB565_BLACK);
+    screen.setTextColor(COLOR_RGB565_LGRAY);
+    screen.setTextWrap(true);
+
+    screen.setFont(&FreeMono18pt7b);
+    screen.setCursor(124, YMIN + 25);
+    screen.print("Error");
+
+    const String menuItems[3] = {"", "", "Restart"};
+
+    printMenuBar(menuItems);
+}
+
+void ErrorPage::btnNextPressed() {
+}
+
+void ErrorPage::btnPrevPressed() {
+}
+
+void ErrorPage::btnRestartPressed() {
+    ESP.restart();
+}

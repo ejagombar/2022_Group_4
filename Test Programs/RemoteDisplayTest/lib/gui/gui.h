@@ -93,3 +93,13 @@ class HelpPage {
     ~HelpPage(){};
     HelpPage(){};
 };
+
+class ErrorPage {
+   public:
+    void btnNextPressed();
+    void btnPrevPressed();
+    void btnRestartPressed();
+    void InitScreen(String msg);
+    ~ErrorPage(){};
+    ErrorPage(){};
+};
