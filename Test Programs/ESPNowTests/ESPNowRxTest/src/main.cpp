@@ -26,7 +26,7 @@ typedef struct struct_message {
 const uint8_t MACAddress[] = {0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
 
 // Create a struct_message called myData
-struct_message myData;
+struct_message dataIn;
 
 // callback function that will be executed when data is received
 void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {
@@ -35,7 +35,7 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {
     snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x",
              mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
     Serial.println(macStr);
-    memcpy(&myData, incomingData, sizeof(myData));
+    memcpy(&dataIn, incomingData, sizeof(dataIn));
     // Serial.printf("Board ID %u: %u bytes\n", myData.id, len);
     // Serial.printf("Height: %d", myData.height);
     Serial.println();

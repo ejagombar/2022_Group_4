@@ -12,7 +12,10 @@ enum InitStatus {
     ESPNowFail = -2
 };
 
+enum MessageType {PAIRING, DATA,};
+
 typedef struct struct_message {
+    uint8_t msgType;
     uint16_t time;
     uint8_t id;
     uint8_t height;
@@ -28,7 +31,7 @@ typedef struct struct_pairing {  // new structure for pairing
 
 const uint8_t MACAddress[] = {0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
 
-//This is an interface class used to invoke various ESPNow functions.
+// This is an interface class used to invoke various ESPNow functions.
 class EPSNowInterface {
    public:
     EPSNowInterface(){};
