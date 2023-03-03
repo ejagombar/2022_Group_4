@@ -1,3 +1,6 @@
+#ifndef GUI_H
+#define GUI_H
+
 #include <Arduino.h>
 
 #include <vector>
@@ -103,3 +106,5 @@ class ErrorPage {
     ~ErrorPage(){};
     ErrorPage(){};
 };
+
+#endif

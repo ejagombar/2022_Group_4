@@ -1,3 +1,6 @@
+#ifndef Button_H
+#define Button_H
+
 #include <Arduino.h>
 
 class Button {
@@ -27,3 +30,5 @@ class Button {
 
     void callFunction() { f(); }
 };
+
+#endif

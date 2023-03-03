@@ -10,6 +10,8 @@ MainMenu mainMenu;
 DeviceSetup deviceSetup;
 DeviceScan deviceScan;
 HelpPage helpPage;
+ErrorPage errorPage;
+EPSNowInterface espNow;
 
 State programState = mainMenuState;
 
@@ -63,8 +65,8 @@ void btn2PressedFunc() {
             Serial.println(programState);
             if (programState == setUpState) {
                 deviceSetup.InitScreen();
-                initESPNow();
-                setupRecieveData();
+                espNow.init();
+                espNow.enableDeviceScanCallback();
             }
             if (programState == scanState) {
                 deviceScan.InitScreen();
@@ -76,8 +78,8 @@ void btn2PressedFunc() {
             break;
         case setUpState:
 
-            closeRecieveData();
-            deinitESPNow();
+            espNow.disableCallback();
+            espNow.deinit();
             programState = mainMenuState;
             mainMenu.InitScreen();
 

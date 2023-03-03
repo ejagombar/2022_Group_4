@@ -4,36 +4,33 @@ struct_message myData;
 struct_pairing pairingData;
 
 esp_now_peer_info_t slave;
-int chan; 
+int chan;
 
-bool addPeer(const uint8_t *peer_addr) {      // add pairing
-  memset(&slave, 0, sizeof(slave));
-  const esp_now_peer_info_t *peer = &slave;
-  memcpy(slave.peer_addr, peer_addr, 6);
-  
-  slave.channel = chan; // pick a channel
-  slave.encrypt = 0; // no encryption
-  // check if the peer exists
-  bool exists = esp_now_is_peer_exist(slave.peer_addr);
-  if (exists) {
-    // Slave already paired.
-    Serial.println("Already Paired");
-    return true;
-  }
-  else {
-    esp_err_t addStatus = esp_now_add_peer(peer);
-    if (addStatus == ESP_OK) {
-      // Pair success
-      Serial.println("Pair success");
-      return true;
+bool addPeer(const uint8_t *peer_addr) {  // add pairing
+    memset(&slave, 0, sizeof(slave));
+    const esp_now_peer_info_t *peer = &slave;
+    memcpy(slave.peer_addr, peer_addr, 6);
+
+    slave.channel = chan;  // pick a channel
+    slave.encrypt = 0;     // no encryption
+    // check if the peer exists
+    bool exists = esp_now_is_peer_exist(slave.peer_addr);
+    if (exists) {
+        // Slave already paired.
+        Serial.println("Already Paired");
+        return true;
+    } else {
+        esp_err_t addStatus = esp_now_add_peer(peer);
+        if (addStatus == ESP_OK) {
+            // Pair success
+            Serial.println("Pair success");
+            return true;
+        } else {
+            Serial.println("Pair failed");
+            return false;
+        }
     }
-    else 
-    {
-      Serial.println("Pair failed");
-      return false;
-    }
-  }
-} 
+}
 
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
     Serial.print("\r\nLast Packet Send Status:\t");
@@ -52,8 +49,10 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {
     Serial.printf("temp value: %d \n", myData.temp);
 }
 
-int initESPNow() {
-    if (WiFi.mode(WIFI_STA) == false) {
+//--------------------------------------------------------------------------------------------//
+
+int EPSNowInterface::init() {
+    if (!WiFi.mode(WIFI_STA)) {
         Serial.println("Error initializing Wifi");
         return WifiModeFail;
     }
@@ -71,13 +70,13 @@ int initESPNow() {
     return Success;
 }
 
-int deinitESPNow() {
+int EPSNowInterface::deinit() {
     if (esp_now_deinit() != ESP_OK) {
         Serial.println("Error deinitializing ESP-NOW");
         return ESPNowFail;
     }
 
-    if (WiFi.mode(WIFI_OFF) == false) {
+    if (!WiFi.mode(WIFI_OFF)) {
         Serial.println("Error deinitializing Wifi");
         return WifiModeFail;
     }
@@ -87,10 +86,14 @@ int deinitESPNow() {
     return Success;
 }
 
-void setupRecieveData() {
+void EPSNowInterface::enableDeviceSetupCallback() {
     esp_now_register_recv_cb(OnDataRecv);
 }
 
-void closeRecieveData() {
+void EPSNowInterface::enableDeviceScanCallback() {
+    esp_now_register_recv_cb(OnDataRecv);
+}
+
+void EPSNowInterface::disableCallback() {
     esp_now_unregister_recv_cb();
 }
