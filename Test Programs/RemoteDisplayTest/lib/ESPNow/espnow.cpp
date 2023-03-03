@@ -45,17 +45,17 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
     Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
 }
 
-void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {
-    char macStr[18];
-    Serial.print("Packet received from: ");
-    snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x", mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
-    Serial.println(macStr);
+// void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {
+//     char macStr[18];
+//     Serial.print("Packet received from: ");
+//     snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x", mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
+//     Serial.println(macStr);
 
-    memcpy(&dataIn, incomingData, sizeof(dataIn));
-    Serial.printf("Board ID %u: %u bytes\n", dataIn.id, len);
-    Serial.printf("height value: %d \n", dataIn.height);
-    Serial.printf("temp value: %d \n", dataIn.temp);
-}
+//     memcpy(&dataIn, incomingData, sizeof(dataIn));
+//     Serial.printf("Board ID %u: %u bytes\n", dataIn.id, len);
+//     Serial.printf("height value: %d \n", dataIn.height);
+//     Serial.printf("temp value: %d \n", dataIn.temp);
+// }
 
 //--------------------------------------------------------------------------------------------//
 
@@ -133,7 +133,6 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {
             Serial.print("Pairing request from: ");
             printMAC(mac_addr);
             Serial.println();
-            Serial.println(pairingData.channel);
             if (pairingData.id > 0) {
                 addPeer(mac_addr);
             }

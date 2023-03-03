@@ -12,21 +12,21 @@ enum InitStatus {
     ESPNowFail = -2
 };
 
-enum MessageType {PAIRING, DATA,};
+enum MessageType { PAIRING,
+                   DATA,
+};
 
 typedef struct struct_message {
-    uint8_t msgType;
-    uint16_t time;
     uint8_t id;
+    uint16_t time;
     uint8_t height;
     uint8_t temp;
 } struct_message;
 
 typedef struct struct_pairing {  // new structure for pairing
-    uint8_t msgType;
     uint8_t id;
     uint8_t macAddr[6];
-    uint8_t channel;
+    uint8_t newId;
 } struct_pairing;
 
 const uint8_t MACAddress[] = {0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
