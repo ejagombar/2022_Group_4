@@ -3,6 +3,7 @@
 #include "button.h"
 #include "espnow.h"
 #include "gui.h"
+#include "saved.h"
 
 //----------------------------------------------------------------------------------------
 
@@ -12,6 +13,7 @@ DeviceScan deviceScan;
 HelpPage helpPage;
 ErrorPage errorPage;
 EPSNowInterface espNow;
+Saved saved;
 
 State programState = mainMenuState;
 

@@ -2,12 +2,17 @@
 #define Saved_H
 
 #include <Arduino.h>
-#include <Vector>
+
+struct SavedDevice {
+    uint8_t id;
+    uint16_t macAddr;
+};
 
 class Saved {
    private:
-    
-      public:
+    SavedDevice savedDeviceArr[256];
+    uint8_t deviceCount = 0;
+   public:
     Saved(){};
     ~Saved(){};
     void AddDevice();
