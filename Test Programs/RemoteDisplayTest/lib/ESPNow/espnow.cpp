@@ -4,6 +4,7 @@ struct_message dataIn;
 struct_message incomingReadings;
 struct_pairing pairingData;
 
+
 esp_now_peer_info_t slave;
 int chan;
 
@@ -19,8 +20,8 @@ bool addPeer(const uint8_t *peer_addr) {  // add pairing
     const esp_now_peer_info_t *peer = &slave;
     memcpy(slave.peer_addr, peer_addr, 6);
 
-    slave.channel = chan;  // pick a channel
-    slave.encrypt = 0;     // no encryption
+    slave.channel = 0;  // pick a channel
+    slave.encrypt = false;     // no encryption
     // check if the peer exists
     bool exists = esp_now_is_peer_exist(slave.peer_addr);
     if (exists) {
@@ -32,6 +33,12 @@ bool addPeer(const uint8_t *peer_addr) {  // add pairing
         if (addStatus == ESP_OK) {
             // Pair success
             Serial.println("Pair success");
+            struct_pairing pairingDataOut;
+            pairingDataOut.id = 0;
+            memcpy(pairingDataOut.macAddr, peer_addr, 6);
+            pairingDataOut.newId = 2;
+
+            esp_now_send(pairingDataOut.macAddr, (uint8_t *)&pairingDataOut, sizeof(pairingDataOut));
             return true;
         } else {
             Serial.println("Pair failed");
@@ -94,6 +101,62 @@ int EPSNowInterface::deinit() {
     return Success;
 }
 
+
+
+void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {
+    Serial.print(len);
+    Serial.print(" bytes of data received from : ");
+    printMAC(mac_addr);
+    String payload;
+    uint8_t type = incomingData[0];  // first message byte is the type of message
+    if (type == 0) {
+        memcpy(&pairingData, incomingData, sizeof(pairingData));
+
+        Serial.print("Pairing request from: ");
+        printMAC(mac_addr);
+        Serial.println();
+        addPeer(mac_addr);
+
+    } else {
+        memcpy(&incomingReadings, incomingData, sizeof(incomingReadings));
+
+        Serial.print("Id: ");
+        Serial.println(incomingReadings.id);
+        Serial.println("Height:");
+        Serial.println(incomingReadings.height);
+        Serial.println("Temperature:");
+        Serial.println(incomingReadings.temp);
+        Serial.println();
+    }
+
+    // switch (type) {
+    //     case DATA:
+    //         memcpy(&incomingReadings, incomingData, sizeof(incomingReadings));
+
+    //         Serial.println("Id: ");
+    //         Serial.print(incomingReadings.id);
+    //         Serial.println("Height:");
+    //         Serial.print(incomingReadings.height);
+    //         Serial.println("Temperature:");
+    //         Serial.print(incomingReadings.temp);
+    //         Serial.println();
+
+    //         break;
+
+    //     case PAIRING:
+    //         memcpy(&pairingData, incomingData, sizeof(pairingData));
+    //         Serial.println(pairingData.msgType);
+    //         Serial.println(pairingData.id);
+    //         Serial.print("Pairing request from: ");
+    //         printMAC(mac_addr);
+    //         Serial.println();
+    //         if (pairingData.id > 0) {
+    //             addPeer(mac_addr);
+    //         }
+    //         break;
+    // }
+}
+
 void EPSNowInterface::enableDeviceSetupCallback() {
     esp_now_register_recv_cb(OnDataRecv);
 }
@@ -104,38 +167,4 @@ void EPSNowInterface::enableDeviceScanCallback() {
 
 void EPSNowInterface::disableCallback() {
     esp_now_unregister_recv_cb();
-}
-
-void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {
-    Serial.print(len);
-    Serial.print(" bytes of data received from : ");
-    printMAC(mac_addr);
-    String payload;
-    uint8_t type = incomingData[0];  // first message byte is the type of message
-    switch (type) {
-        case DATA:
-            memcpy(&incomingReadings, incomingData, sizeof(incomingReadings));
-
-            Serial.println("Id: ");
-            Serial.print(incomingReadings.id);
-            Serial.println("Height:");
-            Serial.print(incomingReadings.height);
-            Serial.println("Temperature:");
-            Serial.print(incomingReadings.temp);
-            Serial.println();
-
-            break;
-
-        case PAIRING:
-            memcpy(&pairingData, incomingData, sizeof(pairingData));
-            Serial.println(pairingData.msgType);
-            Serial.println(pairingData.id);
-            Serial.print("Pairing request from: ");
-            printMAC(mac_addr);
-            Serial.println();
-            if (pairingData.id > 0) {
-                addPeer(mac_addr);
-            }
-            break;
-    }
 }

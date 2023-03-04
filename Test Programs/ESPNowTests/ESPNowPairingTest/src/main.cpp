@@ -76,34 +76,18 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {
     uint8_t type = incomingData[0];
 
     if (type == 0) {
-        memcpy(&pairingData, incomingData, sizeof(pairingData));
-        if (mac_addr == serverAddress) {
-            // if (pairingData.macAddr == WiFi.macAddress()) {
-            myData.id = pairingData.newId;
-            Serial.println("Mydata.Id changed to " + myData.id);
+        if (myData.id == 0) {
+            memcpy(&pairingData, incomingData, sizeof(pairingData));
+            //if (pairingData.macAddr == serverAddress) {
+                myData.id = pairingData.newId;
+                Serial.println("Mydata.Id changed to " + myData.id);
             //}
+        } else {
+            Serial.println("Pairing message receieved but ID already set");
         }
-
     } else {
     }
-    switch (type) {
-        case DATA:  // we received data from server
 
-        case PAIRING:  // we received pairing data from server
-            memcpy(&pairingData, incomingData, sizeof(pairingData));
-            if (pairingData.id == 0) {  // the message comes from server
-                printMAC(mac_addr);
-                Serial.print("Pairing done for ");
-                printMAC(pairingData.macAddr);
-                Serial.print(" in ");
-                Serial.print(millis() - start);
-                Serial.println("ms");
-                // add the server  to the peer list
-
-                pairingStatus = PAIR_PAIRED;  // set the pairing status
-            }
-            break;
-    }
 }
 
 void setup() {
@@ -140,7 +124,8 @@ void loop() {
     currentMillis = millis();
     if (currentMillis - previousMillis >= interval) {
         previousMillis = currentMillis;
-
+        Serial.print("ID: ");
+        Serial.println(myData.id);
         if (myData.id == 0) {
             myData.height = 0;
             myData.temp = 0;
@@ -154,6 +139,7 @@ void loop() {
 
             myData.temp = random(0, 100);
             myData.height = random(0, 100);
+            myData.time = random(0, 1000);
 
             esp_err_t result = esp_now_send(serverAddress, (uint8_t *)&myData, sizeof(myData));
             Serial.println("Attempting to send data message");
