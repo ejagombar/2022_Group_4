@@ -28,6 +28,11 @@ const uint8_t MACAddress[] = {0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
 
 // This is an interface class used to invoke various ESPNow functions.
 class EPSNowInterface {
+    friend bool addPeer(const uint8_t *peer_addr);
+
+   private:
+    uint8_t deviceCount = 0;
+
    public:
     EPSNowInterface(){};
     ~EPSNowInterface(){};
