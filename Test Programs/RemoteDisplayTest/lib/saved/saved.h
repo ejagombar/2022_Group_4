@@ -15,7 +15,8 @@ class Saved {
    public:
     Saved(){};
     ~Saved(){};
-    void AddDevice();
+    void AddDevice(SavedDevice device);
+    SavedDevice GetDevice(uint8_t index);
     uint8_t GetDeviceCount();
 };
 
