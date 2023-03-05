@@ -15,8 +15,10 @@ class Saved {
    public:
     Saved(){};
     ~Saved(){};
-    void AddDevice();
-    uint8_t GetDeviceCount();
+    void AddDevice(SavedDevice deviceIn);
+    SavedDevice GetDevice(uint8_t index);
+    inline uint8_t GetDeviceCount();
+
 };
 
 #endif Saved_H
