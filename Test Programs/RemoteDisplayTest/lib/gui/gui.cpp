@@ -53,6 +53,9 @@ State MainMenu::btnEnterPressed() {
         case 1:
             selection = scanState;
             break;
+        case 3:
+            selection = resetState;
+            break;
         case 4:
             selection = helpState;
             break;

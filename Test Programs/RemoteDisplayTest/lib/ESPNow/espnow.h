@@ -6,6 +6,17 @@
 #include <esp_now.h>
 #include <esp_wifi.h>
 
+#include "saved.h"
+
+enum PairingState {
+  WaitingForPair,
+  RecievedPairRequest,
+  SendID,
+  IDSent,
+  PairConfirmed,
+  WaitingForInstruction,
+};
+
 enum InitStatus {
     Success = 0,
     WifiModeFail = -1,
@@ -28,6 +39,10 @@ const uint8_t MACAddress[] = {0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
 
 // This is an interface class used to invoke various ESPNow functions.
 class EPSNowInterface {
+      private:
+    uint8_t deviceCount = 0;
+
+
    public:
     EPSNowInterface(){};
     ~EPSNowInterface(){};
@@ -36,6 +51,9 @@ class EPSNowInterface {
     void enableDeviceSetupCallback();
     void enableDeviceScanCallback();
     void disableCallback();
+    void ProccessPairingMessage();
+    void sendTestMessage();
+    friend bool addPeer(const uint8_t *peer_addr);
 };
 
 #endif
