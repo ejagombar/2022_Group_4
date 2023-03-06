@@ -24,7 +24,6 @@ typedef struct struct_message {
 
 typedef struct struct_pairing {  // new structure for pairing
     uint8_t id;
-    uint8_t macAddr[6];
     uint8_t newId;
 } struct_pairing;
 
@@ -75,12 +74,18 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {
     Serial.println(sizeof(incomingData));
     uint8_t type = incomingData[0];
 
+    Serial.print("Type: ");
+    Serial.println(type);
+    Serial.print("myData.id: ");
+    Serial.println(myData.id);
+
     if (type == 0) {
         if (myData.id == 0) {
             memcpy(&pairingData, incomingData, sizeof(pairingData));
             //if (pairingData.macAddr == serverAddress) {
                 myData.id = pairingData.newId;
-                Serial.println("Mydata.Id changed to " + myData.id);
+                Serial.print("Mydata.Id changed to ");
+                Serial.println(myData.id);
             //}
         } else {
             Serial.println("Pairing message receieved but ID already set");
