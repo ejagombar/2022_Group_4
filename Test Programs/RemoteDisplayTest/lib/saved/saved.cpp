@@ -5,7 +5,7 @@ void Saved::AddDevice(SavedDevice deviceIn) {
     savedDeviceArr[deviceCount] = deviceIn;
 }
 
-inline uint8_t Saved::GetDeviceCount() {
+uint8_t Saved::GetDeviceCount() {
     return deviceCount;
 }
 

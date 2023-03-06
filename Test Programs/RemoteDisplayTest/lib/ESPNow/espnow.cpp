@@ -1,43 +1,42 @@
 #include "espnow.h"
 struct_message messageData;
 struct_pairing pairingData;
-esp_now_peer_info_t slave;
+esp_now_peer_info_t peerInfo;
+PairingState pairingState;
+uint64_t currentMAC = 0;
+uint64_t storedMAC = 0;
+uint8_t maxId = 0;
+unsigned long previousMillis = 0;
 
 void printMAC(const uint8_t *mac_addr) {
     char macStr[18];
     snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x",
              mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
-    Serial.print(macStr);
+    Serial.println(macStr);
 }
 
-bool addPeer(const uint8_t *peer_addr) {
-    memset(&slave, 0, sizeof(slave));
-    const esp_now_peer_info_t *peer = &slave;
-    memcpy(slave.peer_addr, peer_addr, 6);
+void printMAC(uint8_t mac_addr[6]) {
+    char macStr[18];
+    snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x",
+             mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
+    Serial.println(macStr);
+}
 
-    slave.channel = 0;
-    slave.encrypt = false;
+uint64_t convertMac(const uint8_t *mac_addr) {
+    uint64_t result = 0;
+    for (int i = 0; i < 6; ++i) {
+        result |= static_cast<uint64_t>(mac_addr[i]) << (5 - i) * 8;
+    }
+    return result;
+}
 
-    bool exists = esp_now_is_peer_exist(slave.peer_addr);
-    if (exists) {
-        Serial.println("Already Paired");
-        return true;
-    } else {
-        esp_err_t addStatus = esp_now_add_peer(peer);
-        if (addStatus == ESP_OK) {
-
-            Serial.println("Pair success");
-            struct_pairing pairingDataOut;
-            pairingDataOut.newId = 2;
-
-            esp_now_send(peer_addr, (uint8_t *)&pairingDataOut, sizeof(pairingDataOut));
-            return true;
-        } else {
-            Serial.println("Pair failed");
-            return false;
-        }
+void uint64_to_mac(uint64_t value, uint8_t *mac) {
+    for (int i = 0; i < 6; ++i) {
+        mac[i] = static_cast<uint8_t>((value >> (5 - i) * 8) & 0xFF);
     }
 }
+
+//--------------------------------------------------------------------------------------------//
 
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
     Serial.print("\r\nLast Packet Send Status:\t");
@@ -45,17 +44,17 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
 }
 
 void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {
+    Serial.println();
     Serial.print(len);
     Serial.print(" bytes of data received from : ");
     printMAC(mac_addr);
-    String payload;
-    uint8_t type = incomingData[0];  // first message byte is the type of message
-    if (type == 0) {
-        memcpy(&pairingData, incomingData, sizeof(pairingData));
 
-        Serial.print("Pairing request from: ");
-        printMAC(mac_addr);
-        addPeer(mac_addr);
+    if (pairingState == WaitingForPair) {
+        memcpy(&pairingData, incomingData, sizeof(pairingData));
+        currentMAC = convertMac(mac_addr);
+        pairingState = RecievedPairRequest;
+    } else if (pairingState == IDSent) {
+        pairingState = SendID;
     }
 }
 
@@ -92,12 +91,13 @@ int EPSNowInterface::deinit() {
     }
 
     Serial.print("ESP Now has been deinitialized");
-
     return Success;
 }
 
 void EPSNowInterface::enableDeviceSetupCallback() {
+    pairingState = WaitingForPair;
     esp_now_register_recv_cb(OnDataRecv);
+    esp_now_register_send_cb(OnDataSent);
 }
 
 void EPSNowInterface::enableDeviceScanCallback() {
@@ -106,17 +106,75 @@ void EPSNowInterface::enableDeviceScanCallback() {
 
 void EPSNowInterface::disableCallback() {
     esp_now_unregister_recv_cb();
+    esp_now_unregister_send_cb();
 }
 
+void EPSNowInterface::sendTestMessage() {
+    const uint8_t mac[] = {0x08, 0x3a, 0xf2, 0x43, 0x98, 0x0c};
+    struct_pairing pairingDataOut;
+    pairingDataOut.newId = maxId;
+    Serial.print("Trying to send message: ");
+    Serial.println(esp_now_send(mac, (uint8_t *)&pairingDataOut, sizeof(pairingDataOut)));
+}
 
-    //  else {
-    //     memcpy(&messageData, incomingData, sizeof(messageData));
+void EPSNowInterface::ProccessPairingMessage() {
+    unsigned long currentMillis = millis();
+    if ((pairingState == RecievedPairRequest) || (pairingState == SendID)) {
+        previousMillis = currentMillis;
+        Serial.print("pairing id");
+        Serial.println(pairingData.id);
+        if (pairingData.id == 0) {
+            struct_pairing pairingDataOut;
+            uint8_t mac[6];
+            uint64_to_mac(storedMAC, mac);
+            if (pairingState != SendID) {
+                // we already have this device but need to send ID to peer again
 
-    //     Serial.print("Id: ");
-    //     Serial.println(messageData.id);
-    //     Serial.println("Height:");
-    //     Serial.println(messageData.height);
-    //     Serial.println("Temperature:");
-    //     Serial.println(messageData.temp);
-    //     Serial.println();
-    // }
+                peerInfo.channel = 0;
+                peerInfo.encrypt = false;
+                memcpy(peerInfo.peer_addr, mac, 6);
+                printMAC(mac);
+                if (esp_now_add_peer(&peerInfo) != ESP_OK) {
+                    Serial.println("Failed to add peer");
+                    return;
+                }
+
+                maxId++;
+                pairingDataOut.newId = maxId;
+                storedMAC = currentMAC;
+
+                Serial.print("New ID issued to peer. Number:");
+                Serial.println(maxId);
+
+            } else {
+                // new device so new id number needed
+                Serial.print("Device missed so sending ID to peer again: ");
+                Serial.println(maxId);
+            }
+
+            esp_now_send(mac, (uint8_t *)&pairingDataOut, sizeof(pairingDataOut));
+            pairingState = IDSent;
+
+        } else if (currentMAC = storedMAC) {
+            if (pairingData.id == maxId) {
+                Serial.println("Pairing great success");
+                pairingState = PairConfirmed;
+            }
+        }
+    }
+}
+
+bool addPeer(const uint8_t *peer_addr) {
+    return true;
+}
+
+//  else {
+//     memcpy(&messageData, incomingData, sizeof(messageData));
+
+//     Serial.print("Id: ");
+//     Serial.println(messageData.id);
+//     Serial.println("Height:");
+//     Serial.println(messageData.height);
+//     Serial.println("Temperature:");
+//     Serial.println(messageData.temp);
+//     Serial.println();

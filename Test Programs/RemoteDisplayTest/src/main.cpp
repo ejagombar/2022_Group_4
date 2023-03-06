@@ -3,7 +3,7 @@
 #include "button.h"
 #include "espnow.h"
 #include "gui.h"
-#include "saved.h"
+
 
 //----------------------------------------------------------------------------------------
 
@@ -13,7 +13,7 @@ DeviceScan deviceScan;
 HelpPage helpPage;
 ErrorPage errorPage;
 EPSNowInterface espNow;
-Saved saved;
+
 
 State programState = mainMenuState;
 
@@ -34,6 +34,7 @@ void btn0PressedFunc() {
             break;
         case setUpState:
             deviceSetup.btnUpPressed();
+            espNow.sendTestMessage();
             break;
         case scanState:
             deviceScan.btnUpPressed();
@@ -123,4 +124,5 @@ void loop() {
     processButton(btn0);
     processButton(btn1);
     processButton(btn2);
+    espNow.ProccessPairingMessage();
 }
