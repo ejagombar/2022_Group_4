@@ -3,19 +3,12 @@ struct_message messageData;
 struct_pairing pairingData;
 esp_now_peer_info_t peerInfo;
 PairingState pairingState;
-uint64_t currentMAC = 0;
-uint64_t storedMAC = 0;
+uint8_t currentMAC[6];
+uint8_t storedMAC[6];
+
 uint8_t maxId = 0;
-unsigned long previousMillis = 0;
 
 void printMAC(const uint8_t *mac_addr) {
-    char macStr[18];
-    snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x",
-             mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
-    Serial.println(macStr);
-}
-
-void printMAC(uint8_t mac_addr[6]) {
     char macStr[18];
     snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x",
              mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
@@ -51,7 +44,7 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {
 
     if (pairingState == WaitingForPair) {
         memcpy(&pairingData, incomingData, sizeof(pairingData));
-        currentMAC = convertMac(mac_addr);
+        memcpy(&currentMAC, mac_addr, 6);
         pairingState = RecievedPairRequest;
     } else if (pairingState == IDSent) {
         pairingState = SendID;
@@ -118,22 +111,21 @@ void EPSNowInterface::sendTestMessage() {
 }
 
 void EPSNowInterface::ProccessPairingMessage() {
-    unsigned long currentMillis = millis();
     if ((pairingState == RecievedPairRequest) || (pairingState == SendID)) {
-        previousMillis = currentMillis;
-        Serial.print("pairing id");
+        Serial.print("pairing id: ");
         Serial.println(pairingData.id);
+        Serial.print("maxId: ");
+        Serial.println(maxId);
         if (pairingData.id == 0) {
             struct_pairing pairingDataOut;
-            uint8_t mac[6];
-            uint64_to_mac(storedMAC, mac);
+
             if (pairingState != SendID) {
                 // we already have this device but need to send ID to peer again
 
                 peerInfo.channel = 0;
                 peerInfo.encrypt = false;
-                memcpy(peerInfo.peer_addr, mac, 6);
-                printMAC(mac);
+                memcpy(peerInfo.peer_addr, currentMAC, 6);
+                printMAC(currentMAC);
                 if (esp_now_add_peer(&peerInfo) != ESP_OK) {
                     Serial.println("Failed to add peer");
                     return;
@@ -141,7 +133,7 @@ void EPSNowInterface::ProccessPairingMessage() {
 
                 maxId++;
                 pairingDataOut.newId = maxId;
-                storedMAC = currentMAC;
+                memcpy(storedMAC, &currentMAC, 6);
 
                 Serial.print("New ID issued to peer. Number:");
                 Serial.println(maxId);
@@ -152,11 +144,11 @@ void EPSNowInterface::ProccessPairingMessage() {
                 Serial.println(maxId);
             }
 
-            esp_now_send(mac, (uint8_t *)&pairingDataOut, sizeof(pairingDataOut));
+            esp_now_send(currentMAC, (uint8_t *)&pairingDataOut, sizeof(pairingDataOut));
             pairingState = IDSent;
 
-        } else if (currentMAC = storedMAC) {
-            if (pairingData.id == maxId) {
+        } else {
+            if (memcmp(storedMAC, currentMAC, sizeof(storedMAC))) {
                 Serial.println("Pairing great success");
                 pairingState = PairConfirmed;
             }
