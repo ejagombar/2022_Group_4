@@ -5,7 +5,7 @@
 
 struct SavedDevice {
     uint8_t id;
-    uint16_t macAddr;
+    uint32_t macAddr;
 };
 
 class Saved {
@@ -15,9 +15,10 @@ class Saved {
    public:
     Saved(){};
     ~Saved(){};
-    void AddDevice(SavedDevice device);
+    void AddDevice(SavedDevice deviceIn);
     SavedDevice GetDevice(uint8_t index);
     uint8_t GetDeviceCount();
+
 };
 
-#endif Saved_H
+#endif
