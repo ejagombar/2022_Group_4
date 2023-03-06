@@ -4,7 +4,6 @@
 #include "espnow.h"
 #include "gui.h"
 
-
 //----------------------------------------------------------------------------------------
 
 MainMenu mainMenu;
@@ -13,7 +12,6 @@ DeviceScan deviceScan;
 HelpPage helpPage;
 ErrorPage errorPage;
 EPSNowInterface espNow;
-
 
 State programState = mainMenuState;
 
@@ -77,6 +75,9 @@ void btn2PressedFunc() {
             if (programState == helpState) {
                 helpPage.InitScreen();
             }
+            if (programState == resetState) {
+                ESP.restart();
+            };
 
             break;
         case setUpState:

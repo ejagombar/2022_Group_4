@@ -23,7 +23,9 @@ enum State {
     mainMenuState,
     setUpState,
     scanState,
-    helpState
+    resetState,
+    helpState,
+
 };
 
 //--------------------------------------------------------------------------------------------//
@@ -33,7 +35,7 @@ class MainMenu {
     uint8_t cursorPosition = 0;
     static const uint8_t highLightPadding = 5;
     static const uint8_t listLength = 5;
-    const String menuItems[listLength] = {"Setup Monitor", "Scan Monitors", "View Data", "Format SD Card", "Help"};
+    const String menuItems[listLength] = {"Setup Monitor", "Scan Monitors", "View Data", "Reset", "Help"};
 
     void SelectItem(uint8_t index);
     void UnselectItem(uint8_t index);
