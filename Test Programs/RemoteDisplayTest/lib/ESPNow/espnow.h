@@ -51,7 +51,7 @@ class EPSNowInterface {
     void enableDeviceSetupCallback();
     void enableDeviceScanCallback();
     void disableCallback();
-    void ProccessPairingMessage();
+    PairingState ProccessPairingMessage();
     void sendTestMessage();
     friend bool addPeer(const uint8_t *peer_addr);
 };

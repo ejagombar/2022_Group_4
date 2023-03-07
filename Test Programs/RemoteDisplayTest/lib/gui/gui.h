@@ -19,14 +19,17 @@
 #define darkBlue 0x0190
 #define colour1 0x012a
 
-enum State {
+enum MainState {
     mainMenuState,
     setUpState,
     scanState,
     resetState,
     helpState,
-
 };
+
+enum DeviceSetupState { WaitForUserInput,
+                        Scan,
+                        DisplayNumber };
 
 //--------------------------------------------------------------------------------------------//
 
@@ -43,7 +46,7 @@ class MainMenu {
    public:
     void btnUpPressed();
     void btnDownPressed();
-    State btnEnterPressed();
+    MainState btnEnterPressed();
     void InitScreen();
     ~MainMenu(){};
     MainMenu();
@@ -53,13 +56,14 @@ class MainMenu {
 
 class DeviceSetup {
    private:
+    DeviceSetupState devicesetupState;
     void SelectItem(uint8_t index);
     void UnselectItem(uint8_t index);
 
    public:
-    void btnUpPressed();
-    void btnDownPressed();
-    void btnEnterPressed();
+    void btnStartScanPressed();
+    void btnCancelPressed();
+    void displayIDNum(uint8_t num);
     void InitScreen();
     ~DeviceSetup(){};
     DeviceSetup(){};
@@ -84,7 +88,7 @@ class HelpPage {
     static const uint8_t pageMax = 3;
     uint8_t pageNum = 0;
     void drawPage();
-                                                              
+
     // The Width of the screen is:   <-------------------->
     const String contents[pageMax] = {"Use the \"Setup        Monitors\" function      to configure a new    device. Turn on the   device first and the  remote to recognize it and assign it a value.",
                                       "\"Scan Monitors\" will  enable broadcasting   mode. When a monitor  wakes up, it will     connect to the remote  and transmit any new   data.",

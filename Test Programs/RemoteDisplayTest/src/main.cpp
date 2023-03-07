@@ -13,7 +13,8 @@ HelpPage helpPage;
 ErrorPage errorPage;
 EPSNowInterface espNow;
 
-State programState = mainMenuState;
+MainState programState = mainMenuState;
+DeviceSetupState deviceSetupState;
 
 void processButton(Button &btn) {
     if ((digitalRead(btn.getPin()) == LOW) && btn.getReady()) {
@@ -31,8 +32,14 @@ void btn0PressedFunc() {
             mainMenu.btnUpPressed();
             break;
         case setUpState:
-            deviceSetup.btnUpPressed();
-            espNow.sendTestMessage();
+            if (deviceSetupState == WaitForUserInput) {
+                deviceSetup.btnStartScanPressed();
+                deviceSetupState = Scan;
+                espNow.init();
+                espNow.enableDeviceScanCallback();
+            } else if (deviceSetupState == DisplayNumber) {
+                deviceSetup.btnStartScanPressed();
+            }
             break;
         case scanState:
             deviceScan.btnUpPressed();
@@ -48,7 +55,11 @@ void btn1PressedFunc() {
             mainMenu.btnDownPressed();
             break;
         case setUpState:
-            deviceSetup.btnDownPressed();
+            if (deviceSetupState == Scan) {
+                deviceSetup.btnCancelPressed();
+                deviceSetupState = WaitForUserInput;
+                espNow.disableCallback();
+            }
             break;
         case scanState:
             deviceScan.btnDownPressed();
@@ -65,9 +76,8 @@ void btn2PressedFunc() {
             programState = mainMenu.btnEnterPressed();
             Serial.println(programState);
             if (programState == setUpState) {
+                deviceSetupState = WaitForUserInput;
                 deviceSetup.InitScreen();
-                espNow.init();
-                espNow.enableDeviceScanCallback();
             }
             if (programState == scanState) {
                 deviceScan.InitScreen();
@@ -125,5 +135,10 @@ void loop() {
     processButton(btn0);
     processButton(btn1);
     processButton(btn2);
-    espNow.ProccessPairingMessage();
+    if (programState == setUpState && deviceSetupState == Scan) {
+        if (espNow.ProccessPairingMessage() == PairConfirmed) {
+            deviceSetupState = DisplayNumber;
+            deviceSetup.displayIDNum(123);
+        }
+    }
 }

@@ -44,8 +44,8 @@ void MainMenu::btnUpPressed() {
     }
 }
 
-State MainMenu::btnEnterPressed() {
-    State selection;
+MainState MainMenu::btnEnterPressed() {
+    MainState selection;
     switch (cursorPosition) {
         case 0:
             selection = setUpState;
@@ -118,21 +118,32 @@ void DeviceSetup::InitScreen() {
     screen.setCursor(38, YMIN + 25);
     screen.print("Device Setup");
 
-    const String menuItems[3] = {"Start", "Stop", "Back"};
+    const String menuItems[3] = {"Start", "", "Back"};
     printMenuBar(menuItems);
 }
 
-void DeviceSetup::btnDownPressed() {
-    screen.setCursor(5, YMIN + 60 + 30);
-    screen.print("testThis");
+void DeviceSetup::btnStartScanPressed() {
+    const String menuItems[3] = {"", "Cancel", "Back"};
+    printMenuBar(menuItems);
+
+    screen.setTextSize(1);
+    screen.setFont(&FreeMono12pt7b);
+    screen.setCursor(5, 50);
+    screen.print("Waiting for pair request...");
 }
 
-void DeviceSetup::btnUpPressed() {
-    screen.setCursor(5, YMIN + 60 + 60);
-    screen.print("testThat");
+void DeviceSetup::btnCancelPressed() {
+    InitScreen();
 }
 
-void DeviceSetup::btnEnterPressed() {
+void DeviceSetup::displayIDNum(uint8_t num) {
+    screen.setFont(&FreeMono9pt7b);
+    screen.setTextSize(3);
+    screen.setCursor(56, YMIN + 65);
+    screen.print(num);
+
+    const String menuItems[3] = {"Scan More", "", "Back"};
+    printMenuBar(menuItems);
 }
 
 //--------------------------------------------------------------------------------------------//
