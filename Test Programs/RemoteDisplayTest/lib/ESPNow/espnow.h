@@ -11,11 +11,7 @@
 enum PairingState {
     WaitingForPairRequest,
     ProcessNewRequest,
-    SentIdNumber,
-    WaitingForConfirmation,
-    RequestConfirmed,
-    InitNewPairing,
-    
+    PairConfirmed, 
 };
 
 
@@ -31,7 +27,7 @@ enum MessageType {
 };
 
 struct struct_message {
-    uint8_t msgType = DataMessage;
+    const uint8_t msgType = DataMessage;
     uint8_t id;
     uint16_t time;
     uint8_t height;
@@ -39,7 +35,7 @@ struct struct_message {
 };
 
 struct struct_pairing {  // new structure for pairing
-    uint8_t msgType = PairMessage;
+    const uint8_t msgType = PairMessage;
     uint8_t id;
 };
 
@@ -58,7 +54,7 @@ class EPSNowInterface {
     void enableDeviceSetupCallback();
     void enableDeviceScanCallback();
     void disableCallback();
-    void ProccessPairingMessage();
+    PairingState ProccessPairingMessage();
     void sendTestMessage();
     friend bool addPeer(const uint8_t *peer_addr);
 };
