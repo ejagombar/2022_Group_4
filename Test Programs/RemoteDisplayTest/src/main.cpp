@@ -36,7 +36,8 @@ void btn0PressedFunc() {
                 deviceSetup.btnStartScanPressed();
                 deviceSetupState = Scan;
                 espNow.init();
-                espNow.enableDeviceScanCallback();
+                espNow.enableDeviceSetupCallback();
+                
             } else if (deviceSetupState == DisplayNumber) {
                 deviceSetup.btnStartScanPressed();
             }

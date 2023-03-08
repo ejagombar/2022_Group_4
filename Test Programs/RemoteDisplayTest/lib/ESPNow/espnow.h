@@ -9,13 +9,15 @@
 #include "saved.h"
 
 enum PairingState {
-  WaitingForPair,
-  RecievedPairRequest,
-  SendID,
-  IDSent,
-  PairConfirmed,
-  WaitingForInstruction,
+    WaitingForPairRequest,
+    ProcessNewRequest,
+    SentIdNumber,
+    WaitingForConfirmation,
+    RequestConfirmed,
+    InitNewPairing,
+    
 };
+
 
 enum InitStatus {
     Success = 0,
@@ -23,7 +25,13 @@ enum InitStatus {
     ESPNowFail = -2
 };
 
+enum MessageType {
+    PairMessage,
+    DataMessage,
+};
+
 struct struct_message {
+    uint8_t msgType = DataMessage;
     uint8_t id;
     uint16_t time;
     uint8_t height;
@@ -31,17 +39,16 @@ struct struct_message {
 };
 
 struct struct_pairing {  // new structure for pairing
-    const uint8_t id = 0;
-    uint8_t newId;
+    uint8_t msgType = PairMessage;
+    uint8_t id;
 };
 
 const uint8_t MACAddress[] = {0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
 
 // This is an interface class used to invoke various ESPNow functions.
 class EPSNowInterface {
-      private:
+   private:
     uint8_t deviceCount = 0;
-
 
    public:
     EPSNowInterface(){};
@@ -51,7 +58,7 @@ class EPSNowInterface {
     void enableDeviceSetupCallback();
     void enableDeviceScanCallback();
     void disableCallback();
-    PairingState ProccessPairingMessage();
+    void ProccessPairingMessage();
     void sendTestMessage();
     friend bool addPeer(const uint8_t *peer_addr);
 };
