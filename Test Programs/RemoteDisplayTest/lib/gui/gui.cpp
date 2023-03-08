@@ -6,8 +6,9 @@ void printMenuBar(const String menuItems[3]) {
     const uint8_t NavBarHeight = 25;
     const u_int8_t textHeight = 6;
     // const String menuItems[3] = {"Start", "Stop", "Back"};
-
+    screen.setTextSize(1);
     screen.setFont(&FreeMono12pt7b);
+    screen.setTextColor(COLOR_RGB565_LGRAY);
 
     screen.fillRect(XMIN, YMAX - NavBarHeight, XMAX, NavBarHeight, colour1);
 
@@ -125,11 +126,6 @@ void DeviceSetup::InitScreen() {
 void DeviceSetup::btnStartScanPressed() {
     const String menuItems[3] = {"", "Cancel", "Back"};
     printMenuBar(menuItems);
-
-    screen.setTextSize(1);
-    screen.setFont(&FreeMono12pt7b);
-    screen.setCursor(5, 50);
-    screen.print("Waiting for pair request...");
 }
 
 void DeviceSetup::btnCancelPressed() {
@@ -137,12 +133,14 @@ void DeviceSetup::btnCancelPressed() {
 }
 
 void DeviceSetup::displayIDNum(uint8_t num) {
-    screen.setFont(&FreeMono9pt7b);
-    screen.setTextSize(3);
-    screen.setCursor(56, YMIN + 65);
+    screen.drawRoundRect(50, 65, XMAX - 100, 100, 15, COLOR_RGB565_PURPLE);
+    screen.setFont(&FreeMonoBold12pt7b);
+    screen.setTextColor(COLOR_RGB565_PURPLE);
+    screen.setTextSize(5);
+    screen.setCursor(XMIN + 90, YMIN + 146);
     screen.print(num);
 
-    const String menuItems[3] = {"Scan More", "", "Back"};
+    const String menuItems[3] = {"Scan", "", "Back"};
     printMenuBar(menuItems);
 }
 
@@ -155,6 +153,7 @@ void DeviceScan::InitScreen() {
     screen.setTextColor(COLOR_RGB565_LGRAY);
     screen.setTextWrap(true);
 
+    screen.setTextSize(1);
     screen.setFont(&FreeMono18pt7b);
     screen.setCursor(38, YMIN + 25);
     screen.print("Scan Devices");

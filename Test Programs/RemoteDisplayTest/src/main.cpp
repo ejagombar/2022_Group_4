@@ -139,7 +139,7 @@ void loop() {
     if (programState == setUpState && deviceSetupState == Scan) {
         if (espNow.ProccessPairingMessage() == PairConfirmed) {
             deviceSetupState = DisplayNumber;
-            deviceSetup.displayIDNum(123);
+            deviceSetup.displayIDNum(12);
         }
     }
 }
