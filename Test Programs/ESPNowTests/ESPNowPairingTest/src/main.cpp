@@ -54,7 +54,7 @@ uint8_t myID = 0;
 
 unsigned long currentMillis = millis();
 unsigned long previousMillis = 0; // Stores last time temperature was published
-const long interval = 3000;       // Interval at which to publish sensor readings
+const long interval = 500;       // Interval at which to publish sensor readings
 unsigned long start;              // used to measure Pairing time
 
 void printMAC(const uint8_t *mac_addr)
