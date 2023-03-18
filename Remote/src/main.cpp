@@ -37,9 +37,11 @@ void btn0PressedFunc() {
                 deviceSetupState = Scan;
                 espNow.init();
                 espNow.enableDeviceSetupCallback();
-                
+
             } else if (deviceSetupState == DisplayNumber) {
                 deviceSetup.btnStartScanPressed();
+                deviceSetupState = Scan;
+                espNow.enableDeviceSetupCallback();
             }
             break;
         case scanState:
@@ -57,6 +59,7 @@ void btn1PressedFunc() {
             break;
         case setUpState:
             if (deviceSetupState == Scan) {
+                
                 deviceSetup.btnCancelPressed();
                 deviceSetupState = WaitForUserInput;
                 espNow.disableCallback();
@@ -139,7 +142,8 @@ void loop() {
     if (programState == setUpState && deviceSetupState == Scan) {
         if (espNow.ProccessPairingMessage() == PairConfirmed) {
             deviceSetupState = DisplayNumber;
-            deviceSetup.displayIDNum(12);
+            espNow.disableCallback();
+            deviceSetup.displayIDNum(espNow.getMaxId());
         }
     }
 }

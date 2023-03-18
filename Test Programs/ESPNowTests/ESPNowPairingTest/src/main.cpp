@@ -11,6 +11,8 @@
 #include <WiFi.h>
 #include <esp_now.h>
 #include <esp_wifi.h>
+//#include <M5Core2.h>
+
 
 uint8_t serverAddress[] = {0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
 // uint8_t serverAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
@@ -118,6 +120,7 @@ void setup()
     // Serial.println(WiFi.macAddress());
     WiFi.mode(WIFI_STA);
     // WiFi.disconnect();
+
     start = millis();
 
     if (esp_now_init() != ESP_OK)
@@ -139,6 +142,9 @@ void setup()
         Serial.println("Failed to add peer");
         return;
     }
+
+  //M5.begin(); 
+  //M5.Lcd.print("Hello World");
 
     myID = 0;
     pairingStatus = PAIR_REQUEST;

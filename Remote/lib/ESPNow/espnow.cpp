@@ -143,6 +143,10 @@ PairingState EPSNowInterface::ProccessPairingMessage() {
     return pairingState;
 }
 
+uint8_t EPSNowInterface::getMaxId() {
+    return maxId;
+}
+
 //  else {
 //     memcpy(&messageData, incomingData, sizeof(messageData));
 
