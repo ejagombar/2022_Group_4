@@ -94,18 +94,6 @@ PairingState EPSNowInterface::ProccessPairingMessage() {
         esp_now_peer_info_t peerInfo = {};
         struct_pairing pairMsg = {};
         bool identicalMAC = (memcmp(storedMAC, currentMAC, sizeof(storedMAC)) == 0);
-        Serial.print("storedMAC: ");
-        printMAC(storedMAC);
-        Serial.print("currentMAC: ");
-        printMAC(currentMAC);
-        Serial.print("pairingState: ");
-        Serial.println(pairingState);
-        Serial.print("StoredMACSet: ");
-        Serial.println(storedMACSet);
-        Serial.print("pairingData.id : ");
-        Serial.println(pairingData.id);
-        Serial.print("maxId : ");
-        Serial.println(maxId);
         if (pairingData.id == 0) {
             if (storedMACSet == false) {
                 peerInfo.channel = 0;
@@ -137,19 +125,9 @@ PairingState EPSNowInterface::ProccessPairingMessage() {
             pairingState = PairConfirmed;
             Serial.println("Paired with monitor device");
         } else {
-            Serial.println("HOW did we get here?");
+            Serial.println("How did we get here?");
         }
     }
     return pairingState;
 }
 
-//  else {
-//     memcpy(&messageData, incomingData, sizeof(messageData));
-
-//     Serial.print("Id: ");
-//     Serial.println(messageData.id);
-//     Serial.println("Height:");
-//     Serial.println(messageData.height);
-//     Serial.println("Temperature:");
-//     Serial.println(messageData.temp);
-//     Serial.println();
