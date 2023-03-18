@@ -124,6 +124,7 @@ void DeviceSetup::InitScreen() {
 }
 
 void DeviceSetup::btnStartScanPressed() {
+    screen.fillRect(40, 60, XMAX - 80, 120, COLOR_RGB565_BLACK);
     const String menuItems[3] = {"", "Cancel", "Back"};
     printMenuBar(menuItems);
 }
@@ -133,12 +134,14 @@ void DeviceSetup::btnCancelPressed() {
 }
 
 void DeviceSetup::displayIDNum(uint8_t num) {
-    screen.drawRoundRect(50, 65, XMAX - 100, 100, 15, COLOR_RGB565_PURPLE);
+    screen.drawRoundRect(45, 65, XMAX - 90, 100, 15, COLOR_RGB565_PURPLE);
     screen.setFont(&FreeMonoBold12pt7b);
     screen.setTextColor(COLOR_RGB565_PURPLE);
     screen.setTextSize(5);
-    screen.setCursor(XMIN + 90, YMIN + 146);
-    screen.print(num);
+    screen.setCursor(XMIN + 60, YMIN + 146);
+    char str[4];
+    snprintf(str, sizeof(str), "%03d", num);
+    screen.print(str);
 
     const String menuItems[3] = {"Scan", "", "Back"};
     printMenuBar(menuItems);
