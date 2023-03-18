@@ -2,23 +2,33 @@
 #define Saved_H
 
 #include <Arduino.h>
+#include <SD.h>
+#include <SPI.h>
 
 struct SavedDevice {
     uint8_t id;
-    uint32_t macAddr;
+    uint8_t macAddr[6];
 };
 
-class Saved {
+enum OpenFile {
+    DeviceFileOpen,
+    DataFileOpen,
+    NoneOpen,
+};
+
+class SDInterface {
    private:
-    SavedDevice savedDeviceArr[256];
     uint8_t deviceCount = 0;
+    OpenFile openFile = NoneOpen;
    public:
-    Saved(){};
-    ~Saved(){};
+    SDInterface(){};
+    ~SDInterface(){};
     void AddDevice(SavedDevice deviceIn);
     SavedDevice GetDevice(uint8_t index);
+    void Init();
+    void closeFiles();
+    void ClearDevices();
     uint8_t GetDeviceCount();
-
 };
 
 #endif

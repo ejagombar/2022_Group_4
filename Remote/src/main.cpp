@@ -12,6 +12,7 @@ DeviceScan deviceScan;
 HelpPage helpPage;
 ErrorPage errorPage;
 EPSNowInterface espNow;
+SDInterface sdInterface;
 
 MainState programState = mainMenuState;
 DeviceSetupState deviceSetupState;
@@ -59,7 +60,6 @@ void btn1PressedFunc() {
             break;
         case setUpState:
             if (deviceSetupState == Scan) {
-                
                 deviceSetup.btnCancelPressed();
                 deviceSetupState = WaitForUserInput;
                 espNow.disableCallback();
@@ -126,7 +126,8 @@ Button btn2(D5, &btn2PressedFunc);
 
 void setup() {
     Serial.begin(115200);
-
+    sdInterface.Init();
+    delay(500);
     pinMode(btn0.getPin(), INPUT_PULLUP);
     pinMode(btn1.getPin(), INPUT_PULLUP);
     pinMode(btn2.getPin(), INPUT_PULLUP);
@@ -144,6 +145,9 @@ void loop() {
             deviceSetupState = DisplayNumber;
             espNow.disableCallback();
             deviceSetup.displayIDNum(espNow.getMaxId());
+            SavedDevice temp = {espNow.getMaxId()};
+            memcpy(temp.macAddr, espNow.getCurrentMAC(), 6);
+            sdInterface.AddDevice(temp);
         }
     }
 }

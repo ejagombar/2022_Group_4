@@ -94,18 +94,6 @@ PairingState EPSNowInterface::ProccessPairingMessage() {
         esp_now_peer_info_t peerInfo = {};
         struct_pairing pairMsg = {};
         bool identicalMAC = (memcmp(storedMAC, currentMAC, sizeof(storedMAC)) == 0);
-        Serial.print("storedMAC: ");
-        printMAC(storedMAC);
-        Serial.print("currentMAC: ");
-        printMAC(currentMAC);
-        Serial.print("pairingState: ");
-        Serial.println(pairingState);
-        Serial.print("StoredMACSet: ");
-        Serial.println(storedMACSet);
-        Serial.print("pairingData.id : ");
-        Serial.println(pairingData.id);
-        Serial.print("maxId : ");
-        Serial.println(maxId);
         if (pairingData.id == 0) {
             if (storedMACSet == false) {
                 peerInfo.channel = 0;
@@ -147,13 +135,7 @@ uint8_t EPSNowInterface::getMaxId() {
     return maxId;
 }
 
-//  else {
-//     memcpy(&messageData, incomingData, sizeof(messageData));
+uint8_t* EPSNowInterface::getCurrentMAC(){
+    return currentMAC;
+}
 
-//     Serial.print("Id: ");
-//     Serial.println(messageData.id);
-//     Serial.println("Height:");
-//     Serial.println(messageData.height);
-//     Serial.println("Temperature:");
-//     Serial.println(messageData.temp);
-//     Serial.println();

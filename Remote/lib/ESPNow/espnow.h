@@ -58,6 +58,7 @@ class EPSNowInterface {
     void sendTestMessage();
     friend bool addPeer(const uint8_t *peer_addr);
     uint8_t getMaxId();
+    uint8_t* getCurrentMAC();
 };
 
 #endif
