@@ -2,7 +2,7 @@
 
 #include <Wire.h>
 
-#include "SHTSensor.h"
+//#include "SHTSensor.h"
 
 #include "Adafruit_VL53L0X.h"
 
@@ -10,7 +10,7 @@
 
 MS5837 sensor;
 
-SHTSensor sht;
+//SHTSensor sht;
 // To use a specific sensor instead of probing the bus use this command:
 // SHTSensor sht(SHTSensor::SHT3X);
 
@@ -23,13 +23,13 @@ void setup() {
   Serial.begin(115200);
   delay(1000); // let serial console settle
 
-  if (sht.init()) {
-      Serial.print("SHTC3 boot : Success\n");
-  } 
-  else {
-      Serial.print("SHTC3 boot : Failed\n");
-  }
-  sht.setAccuracy(SHTSensor::SHT_ACCURACY_MEDIUM); // only supported by SHT3x
+  // if (sht.init()) {
+  //     Serial.print("SHTC3 boot : Success\n");
+  // } 
+  // else {
+  //     Serial.print("SHTC3 boot : Failed\n");
+  // }
+  // sht.setAccuracy(SHTSensor::SHT_ACCURACY_MEDIUM); // only supported by SHT3x
 
   Serial.println("Adafruit VL53L0X test");
   if (!lox.begin()) {
@@ -47,7 +47,7 @@ void setup() {
     delay(5000);
   }
 
-  sensor.setModel(MS5837::MS5837_30BA);
+  sensor.setModel(MS5837::MS5837_02BA);
   sensor.setFluidDensity(997); // kg/m^3 (freshwater, 1029 for seawater)
 
 }
@@ -73,15 +73,15 @@ void loop() {
   Serial.print(accumulator / SampleSize);  // print average of all samples
   Serial.print(" mm\n");
 
-  if (sht.readSample()) {
-      Serial.print("Humidity: ");
-      Serial.print(sht.getHumidity(), 2);
-      Serial.print("\nTemperature (°C): ");
-      Serial.print(sht.getTemperature(), 2);
-      Serial.print("\n");
-  } else {
-      Serial.print("Error in readSample()\n");
-  }
+  // if (sht.readSample()) {
+  //     Serial.print("Humidity: ");
+  //     Serial.print(sht.getHumidity(), 2);
+  //     Serial.print("\nTemperature (°C): ");
+  //     Serial.print(sht.getTemperature(), 2);
+  //     Serial.print("\n");
+  // } else {
+  //     Serial.print("Error in readSample()\n");
+  // }
 
   sensor.read();
 
@@ -89,9 +89,9 @@ void loop() {
   Serial.print(sensor.pressure()); 
   Serial.println(" mbar");
 
-  Serial.print("Altitude: "); 
-  Serial.print(sensor.altitude()); 
-  Serial.println(" m above mean sea level\n");
+  // Serial.print("Altitude: "); 
+  // Serial.print(sensor.altitude()); 
+  // Serial.println(" m above mean sea level\n");
 
 
   delay(50);
