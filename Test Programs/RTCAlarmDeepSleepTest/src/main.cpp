@@ -36,7 +36,7 @@ const int SampleSize = 25;  // define the sample size
 
 RTC_DATA_ATTR int bootCount = 0;
 
-#define INTERRUPT_PIN D10
+#define INTERRUPT_PIN D13
 RTC_PCF8523 rtc;
 
 volatile bool alarm_triggered = false;
@@ -164,12 +164,12 @@ void setup() {
     //temperature 
     pinMode(D3,OUTPUT);
     //pressure 
-    pinMode(D2,OUTPUT);
+    pinMode(D12,OUTPUT);
 
     digitalWrite(D6,HIGH);
     digitalWrite(D5,HIGH);
     digitalWrite(D3,HIGH);
-    digitalWrite(D2,HIGH);
+    digitalWrite(D12,HIGH);
 
     pinMode(INTERRUPT_PIN, INPUT_PULLUP);
     pinMode(D13, INPUT_PULLUP);
