@@ -1,106 +1,79 @@
+#include <Adafruit_VL53L0X.h>
 #include <Arduino.h>
-#include <SPI.h>
-
+#include <MS5837.h>
 #include <RTClib.h>
-#include <Arduino.h>
-
+#include <SD.h>
+#include <SHTSensor.h>
+#include <SPI.h>
 #include <Wire.h>
 
-#include <SHTSensor.h>
+MS5837 PressureSensor;
 
-#include <Adafruit_VL53L0X.h>
+SHTSensor TempSensor(SHTSensor::SHTC3);
 
-#include <MS5837.h>
-
-#include <SD.h>
-
-
-#define RTCMEMORYSTART 66
-#define RTCMEMORYLEN 125
-#define VCC_ADJ  1.0   // measure with your voltmeter and calculate that the number mesured from ESP is correct
-MS5837 sensor;
-
-SHTSensor sht(SHTSensor::SHTC3);
-// To use a specific sensor instead of probing the bus use this command:
-// SHTSensor sht(SHTSensor::SHT3X);
-
-File myFile;
-const int chipSelect = D9;
-
-Adafruit_VL53L0X lox = Adafruit_VL53L0X();
-const int SampleSize = 25;  // define the sample size
-
-
-#define uS_TO_S_FACTOR 1000000ULL /* Conversion factor for micro seconds to seconds */
-#define TIME_TO_SLEEP 5           /* Time ESP32 will go to sleep (in seconds) */
-
-RTC_DATA_ATTR int bootCount = 0;
+Adafruit_VL53L0X DistanceSensor = Adafruit_VL53L0X();
 
 #define INTERRUPT_PIN D13
-RTC_PCF8523 rtc;
+RTC_PCF8523 Rtc;
+
+File myFile;
+const int SDCardCS = D9;
+
+const int SampleSize = 25;  // define the sample size
 
 volatile bool alarm_triggered = false;
 
-VL53L0X_RangingMeasurementData_t measure;
-float accumulator = 0;
 float average;
-void Lidar(){  
-    
-    
-     for(int i = 0; i < SampleSize; i++)  // take the sum of multiple readings
-        {
-            lox.rangingTest(&measure, false); // pass in 'true' to get debug data printout!
+float humidity;
+float temp;
+float press;
+float altitude;
 
-            if (measure.RangeStatus != 4) // keep only the good readings
-            {  
-            accumulator += lox.readRange();
-            }
+void Lidar() {
+    VL53L0X_RangingMeasurementData_t DistanceMeasure;
+    float accumulator = 0;
+
+    for (int i = 0; i < SampleSize; i++)  // take the sum of multiple readings
+    {
+        DistanceSensor.rangingTest(&DistanceMeasure, false);  // pass in 'true' to get debug data printout!
+
+        if (DistanceMeasure.RangeStatus != 4)  // keep only the good readings
+        {
+            accumulator += DistanceSensor.readRange();
         }
+    }
     average = accumulator / SampleSize;
     Serial.print("Height: ");
     Serial.print(average);  // print average of all samples
     Serial.print(" mm\n");
-     
-
 };
 
-float humidity;
-float temp;
-void temperature(){
-      if (sht.readSample()) {
-      Serial.print("Humidity: ");
-      humidity = sht.getHumidity();
-      Serial.print(sht.getHumidity(), 2);
-      Serial.print("\nTemperature (°C): ");
-      temp = sht.getTemperature();
-      Serial.print(sht.getTemperature(), 2);
-      Serial.print("\n");
-  } else {
-      Serial.print("Error in readSample()\n");
-  }
+void temperature() {
+    if (TempSensor.readSample()) {
+        Serial.print("Humidity: ");
+        humidity = TempSensor.getHumidity();
+        Serial.print(TempSensor.getHumidity(), 2);
+        Serial.print("\nTemperature (°C): ");
+        temp = TempSensor.getTemperature();
+        Serial.print(TempSensor.getTemperature(), 2);
+        Serial.print("\n");
+    } else {
+        Serial.print("Error in readSample()\n");
+    }
 }
 
-float press;
-float altitude;
-void pressure(){
-    sensor.read();
+void pressure() {
+    PressureSensor.read();
 
-    press = sensor.pressure();
-    Serial.print("Pressure: "); 
-    Serial.print(sensor.pressure()); 
+    press = PressureSensor.pressure();
+    Serial.print("Pressure: ");
+    Serial.print(PressureSensor.pressure());
     Serial.println(" mbar");
 
-    altitude = sensor.altitude();
-    Serial.print("Altitude: "); 
-    Serial.print(sensor.altitude()); 
+    altitude = PressureSensor.altitude();
+    Serial.print("Altitude: ");
+    Serial.print(PressureSensor.altitude());
     Serial.println(" m above mean sea level\n");
-}
-
-void hibernate() {
-    // esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_SLOW_MEM, ESP_PD_OPTION_OFF);
-    // esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_FAST_MEM, ESP_PD_OPTION_OFF);
-    // esp_sleep_pd_config(ESP_PD_DOMAIN_XTAL, ESP_PD_OPTION_OFF);
-    esp_deep_sleep_start();
 }
 
 void alarmISR() {
@@ -109,10 +82,8 @@ void alarmISR() {
 
 void setAlarmInterval(uint8_t interval) {
     alarm_triggered = false;
-     
-    DateTime current_time = rtc.now();
-   
-    
+
+    DateTime current_time = Rtc.now();
 
     uint8_t alarmMin = ceil(float(current_time.minute() + 1) / interval) * interval;
     if (alarmMin >= 60) {
@@ -120,7 +91,7 @@ void setAlarmInterval(uint8_t interval) {
     }
     DateTime alarm_time(current_time.year(), current_time.month(), current_time.day(), current_time.hour(), alarmMin, 0);
 
-    //rtc.enableAlarm(alarm_time, PCF8523_AlarmMinute);
+    Rtc.enableAlarm(alarm_time, PCF8523_AlarmMinute);
 
     char alarm_time_buf[] = "YYYY-MM-DDThh:mm:00";
     Serial.println(String("Alarm Time: ") + alarm_time.toString(alarm_time_buf));
@@ -157,100 +128,72 @@ void setup() {
     Wire.begin();
     Serial.begin(115200);
     delay(1000);
-    //Turn Digital Pin on to power sensors
-    pinMode(D12,OUTPUT);
-    digitalWrite(D12,HIGH);
-    pinMode(D10,OUTPUT);
-    digitalWrite(D10,HIGH);
-    pinMode(D11,OUTPUT);
-    digitalWrite(D11,HIGH);
-    
-    //SD card module
-    pinMode(D6,OUTPUT);
-    //Lidar
-    //pinMode(D5,OUTPUT);
-    //temperature 
-    //pinMode(D3,OUTPUT);
-    //pressure 
-    //pinMode(D2,OUTPUT);
+    // Turn Digital Pin on to power sensors
+    pinMode(D12, OUTPUT);
+    digitalWrite(D12, HIGH);
+    pinMode(D10, OUTPUT);
+    digitalWrite(D10, HIGH);
+    pinMode(D11, OUTPUT);
+    digitalWrite(D11, HIGH);
 
-    digitalWrite(D6,HIGH);
-    //digitalWrite(D5,HIGH);
-    //digitalWrite(D3,HIGH);
-    //digitalWrite(D2,HIGH);
+    pinMode(D6, OUTPUT);
+    digitalWrite(D6, HIGH);
 
     pinMode(INTERRUPT_PIN, INPUT_PULLUP);
-    pinMode(D13, INPUT_PULLUP);
     attachInterrupt(INTERRUPT_PIN, alarmISR, FALLING);
-    
+
     pinMode(SS, OUTPUT);
 
-    // Ensure RTC initializes
-    if (!rtc.begin()) {
+
+
+    if (!Rtc.begin()) {
         Serial.println("Couldn't find RTC");
         return;
     }
-    
-    // Ensure lidar is working 
+
+    setAlarmInterval(1);  // to wake the esp
+
     Serial.println("Adafruit VL53L0X test");
-    if (!lox.begin()) {
+    if (!DistanceSensor.begin()) {
         Serial.println(F("Failed to boot VL53L0X"));
-        while(1);
+        while (1)
+            ;
     }
-   
-    //Serial.println(F("VL53L0X API Simple Ranging example\n\n")); 
 
-    //Ensure Temperature sensor is working 
-    
-    if (sht.init()) {
-      Serial.print("SHTC3 boot : Success\n");
-    } 
-    else {
-      Serial.print("SHTC3 boot : Failed\n");
+    if (TempSensor.init()) {
+        Serial.print("SHTC3 boot : Success\n");
+    } else {
+        Serial.print("SHTC3 boot : Failed\n");
     }
-    sht.setAccuracy(SHTSensor::SHT_ACCURACY_MEDIUM); // only supported by SHT3x
 
-
-    //Ensure Pressure sensor is working 
-    while (!sensor.init()) {
-    Serial.println("Init failed!");
-    Serial.println("Are SDA/SCL connected correctly?");
-    Serial.println("Blue Robotics Bar30: White=SDA, Green=SCL");
-    Serial.println("\n\n\n");
-  
+    while (!PressureSensor.init()) {
+        Serial.println("Init failed!");
+        Serial.println("Are SDA/SCL connected correctly?");
+        Serial.println("Blue Robotics Bar30: White=SDA, Green=SCL");
+        Serial.println("\n\n\n");
     }
-    sensor.setModel(MS5837::MS5837_02BA);
-    sensor.setFluidDensity(997); // kg/m^3 (freshwater, 1029 for seawater)
+    PressureSensor.setModel(MS5837::MS5837_02BA);
+    PressureSensor.setFluidDensity(997);  // kg/m^3 (freshwater, 1029 for seawater)
 
-    //Ensure SD card is working 
-    if (!SD.begin(chipSelect)) {
-    Serial.println("initialization failed!");
-    return;
+    // Ensure SD card is working
+    if (!SD.begin(SDCardCS)) {
+        Serial.println("initialization failed!");
+        return;
     }
     Serial.println("initialization done.");
 
-    
-    
-
     print_wakeup_reason();
-    Serial.println("The time is " + rtc.now().timestamp());
-    esp_sleep_enable_ext0_wakeup(GPIO_NUM_12, 0);
-    
-    
-    // open the file. note that only one file can be open at a time,
-    // so you have to close this one before opening another.
-    myFile = SD.open("/data.txt", "a");
+    Serial.println("The time is " + Rtc.now().timestamp());
 
-    setAlarmInterval(1);//to wake the esp
     Lidar();
     temperature();
     pressure();
-    Serial.println("Going to sleep");
 
+    myFile = SD.open("/data.txt", "a");
     // if the file opened okay, write to it:
     if (myFile) {
         Serial.print("Writing to data.txt...");
-        myFile.println("Time:" + rtc.now().timestamp());
+        myFile.println("Time:" + Rtc.now().timestamp());
         myFile.println("Height:");
         myFile.println(average);
         myFile.println("Humidity:");
@@ -266,15 +209,14 @@ void setup() {
         myFile.close();
         Serial.println("done.");
     } else {
-        // if the file didn't open, print an error:
-        Serial.println("error opening test.txt");
+        Serial.println("error writing to data.txt");
     }
-    
+
     // re-open the file for reading:
     myFile = SD.open("/data.txt");
     if (myFile) {
         Serial.println("data.txt:");
-        
+
         // read from the file until there's nothing else in it:
         while (myFile.available()) {
             Serial.write(myFile.read());
@@ -286,37 +228,26 @@ void setup() {
         Serial.println("error opening data.txt");
     }
 
-    delay(4000);//wake for 4 sec
-    
-    digitalWrite(D6,LOW);
-   /* digitalWrite(D5,LOW);
-    digitalWrite(D3,LOW);
-    digitalWrite(D2,LOW);*/
-    digitalWrite(D12,LOW);
-    hibernate();
+    digitalWrite(D12, LOW);
+    digitalWrite(D10, LOW);
+    digitalWrite(D11, LOW);
+    digitalWrite(D6, LOW);
+
+    esp_deep_sleep_start();
     Serial.println("This shouldnt print");
 }
 
-
-
 void loop() {
- 
-    if (alarm_triggered) {
-        Serial.println("Alarm triggered.\n");
-        
-       setAlarmInterval(1);
-        // Set the RTC to the current time
-        
-        rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-        
-     }else {
-        Serial.println("Alarm not triggered. The time is " + rtc.now().timestamp());
+    // if (alarm_triggered) {
+    //     Serial.println("Alarm triggered.\n");
 
-        delay(1000);
-    }
-    
+    //     setAlarmInterval(1);
+    //     // Set the RTC to the current time
+
+    //     Rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+    // } else {
+    //     Serial.println("Alarm not triggered. The time is " + Rtc.now().timestamp());
+
+    //     delay(1000);
+    // }
 }
-
-
-
-
