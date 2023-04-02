@@ -1,3 +1,4 @@
+
 #include <Adafruit_VL53L0X.h>
 #include <Arduino.h>
 #include <MS5837.h>
@@ -144,14 +145,12 @@ void setup() {
 
     pinMode(SS, OUTPUT);
 
-
-
     if (!Rtc.begin()) {
         Serial.println("Couldn't find RTC");
         return;
     }
-
-    setAlarmInterval(1);  // to wake the esp
+    esp_sleep_enable_ext0_wakeup(GPIO_NUM_12, 0);
+    setAlarmInterval(60);  // to wake the esp
 
     Serial.println("Adafruit VL53L0X test");
     if (!DistanceSensor.begin()) {
@@ -213,20 +212,20 @@ void setup() {
     }
 
     // re-open the file for reading:
-    myFile = SD.open("/data.txt");
-    if (myFile) {
-        Serial.println("data.txt:");
+    // myFile = SD.open("/data.txt");
+    // if (myFile) {
+    //     Serial.println("data.txt:");
 
-        // read from the file until there's nothing else in it:
-        while (myFile.available()) {
-            Serial.write(myFile.read());
-        }
-        // close the file:
-        myFile.close();
-    } else {
-        // if the file didn't open, print an error:
-        Serial.println("error opening data.txt");
-    }
+    //     // read from the file until there's nothing else in it:
+    //     while (myFile.available()) {
+    //         Serial.write(myFile.read());
+    //     }
+    //     // close the file:
+    //     myFile.close();
+    // } else {
+    //     // if the file didn't open, print an error:
+    //     Serial.println("error opening data.txt");
+    // }
 
     digitalWrite(D12, LOW);
     digitalWrite(D10, LOW);
