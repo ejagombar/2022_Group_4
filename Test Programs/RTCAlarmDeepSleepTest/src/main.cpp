@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <SPI.h>
 
-#include "RTClib.h"
+#include <RTClib.h>
 #include <Arduino.h>
 
 #include <Wire.h>
@@ -20,12 +20,12 @@
 #define VCC_ADJ  1.0   // measure with your voltmeter and calculate that the number mesured from ESP is correct
 MS5837 sensor;
 
-SHTSensor sht;
+SHTSensor sht(SHTSensor::SHTC3);
 // To use a specific sensor instead of probing the bus use this command:
 // SHTSensor sht(SHTSensor::SHT3X);
 
 File myFile;
-const int chipSelect = 17;
+const int chipSelect = D9;
 
 Adafruit_VL53L0X lox = Adafruit_VL53L0X();
 const int SampleSize = 25;  // define the sample size
@@ -120,7 +120,7 @@ void setAlarmInterval(uint8_t interval) {
     }
     DateTime alarm_time(current_time.year(), current_time.month(), current_time.day(), current_time.hour(), alarmMin, 0);
 
-    rtc.enableAlarm(alarm_time, PCF8523_AlarmMinute);
+    //rtc.enableAlarm(alarm_time, PCF8523_AlarmMinute);
 
     char alarm_time_buf[] = "YYYY-MM-DDThh:mm:00";
     Serial.println(String("Alarm Time: ") + alarm_time.toString(alarm_time_buf));
@@ -156,20 +156,28 @@ void print_wakeup_reason() {
 void setup() {
     Wire.begin();
     Serial.begin(115200);
+    delay(1000);
     //Turn Digital Pin on to power sensors
+    pinMode(D12,OUTPUT);
+    digitalWrite(D12,HIGH);
+    pinMode(D10,OUTPUT);
+    digitalWrite(D10,HIGH);
+    pinMode(D11,OUTPUT);
+    digitalWrite(D11,HIGH);
+    
     //SD card module
     pinMode(D6,OUTPUT);
     //Lidar
-    pinMode(D5,OUTPUT);
+    //pinMode(D5,OUTPUT);
     //temperature 
-    pinMode(D3,OUTPUT);
+    //pinMode(D3,OUTPUT);
     //pressure 
-    pinMode(D12,OUTPUT);
+    //pinMode(D2,OUTPUT);
 
     digitalWrite(D6,HIGH);
-    digitalWrite(D5,HIGH);
-    digitalWrite(D3,HIGH);
-    digitalWrite(D12,HIGH);
+    //digitalWrite(D5,HIGH);
+    //digitalWrite(D3,HIGH);
+    //digitalWrite(D2,HIGH);
 
     pinMode(INTERRUPT_PIN, INPUT_PULLUP);
     pinMode(D13, INPUT_PULLUP);
@@ -190,9 +198,10 @@ void setup() {
         while(1);
     }
    
-    Serial.println(F("VL53L0X API Simple Ranging example\n\n")); 
+    //Serial.println(F("VL53L0X API Simple Ranging example\n\n")); 
 
     //Ensure Temperature sensor is working 
+    
     if (sht.init()) {
       Serial.print("SHTC3 boot : Success\n");
     } 
@@ -200,6 +209,7 @@ void setup() {
       Serial.print("SHTC3 boot : Failed\n");
     }
     sht.setAccuracy(SHTSensor::SHT_ACCURACY_MEDIUM); // only supported by SHT3x
+
 
     //Ensure Pressure sensor is working 
     while (!sensor.init()) {
@@ -209,7 +219,7 @@ void setup() {
     Serial.println("\n\n\n");
   
     }
-    sensor.setModel(MS5837::MS5837_30BA);
+    sensor.setModel(MS5837::MS5837_02BA);
     sensor.setFluidDensity(997); // kg/m^3 (freshwater, 1029 for seawater)
 
     //Ensure SD card is working 
@@ -225,13 +235,11 @@ void setup() {
     print_wakeup_reason();
     Serial.println("The time is " + rtc.now().timestamp());
     esp_sleep_enable_ext0_wakeup(GPIO_NUM_12, 0);
-    //Turn On board LED on whilst board is not in deep sleep
-    pinMode(D9,OUTPUT);
-    digitalWrite(D9,HIGH);
+    
     
     // open the file. note that only one file can be open at a time,
     // so you have to close this one before opening another.
-    myFile = SD.open("/test.txt", FILE_WRITE);
+    myFile = SD.open("/data.txt", "a");
 
     setAlarmInterval(1);//to wake the esp
     Lidar();
@@ -241,7 +249,7 @@ void setup() {
 
     // if the file opened okay, write to it:
     if (myFile) {
-        Serial.print("Writing to test.txt...");
+        Serial.print("Writing to data.txt...");
         myFile.println("Time:" + rtc.now().timestamp());
         myFile.println("Height:");
         myFile.println(average);
@@ -263,9 +271,9 @@ void setup() {
     }
     
     // re-open the file for reading:
-    myFile = SD.open("/test.txt");
+    myFile = SD.open("/data.txt");
     if (myFile) {
-        Serial.println("test.txt:");
+        Serial.println("data.txt:");
         
         // read from the file until there's nothing else in it:
         while (myFile.available()) {
@@ -275,15 +283,16 @@ void setup() {
         myFile.close();
     } else {
         // if the file didn't open, print an error:
-        Serial.println("error opening test.txt");
+        Serial.println("error opening data.txt");
     }
 
     delay(4000);//wake for 4 sec
-
+    
     digitalWrite(D6,LOW);
-    digitalWrite(D5,LOW);
+   /* digitalWrite(D5,LOW);
     digitalWrite(D3,LOW);
-    digitalWrite(D2,LOW);
+    digitalWrite(D2,LOW);*/
+    digitalWrite(D12,LOW);
     hibernate();
     Serial.println("This shouldnt print");
 }
@@ -299,7 +308,7 @@ void loop() {
         // Set the RTC to the current time
         
         rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-
+        
      }else {
         Serial.println("Alarm not triggered. The time is " + rtc.now().timestamp());
 
