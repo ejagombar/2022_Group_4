@@ -15,7 +15,7 @@ typedef int8_t Error;
 
 class TemperatureSensor {
    private:
-    SHTSensor TempSensor;
+    SHTSensor Sensor;
     const int SampleSize = 5;
     float temp;
     float humidity;

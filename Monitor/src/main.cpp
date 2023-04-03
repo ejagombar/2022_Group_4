@@ -2,6 +2,7 @@
 #include "distanceSensor.h"
 #include "temperatureSensor.h"
 #include "sampleBuffer.h"
+#include "pressureSensor.h"
 
 
 DistanceSensor DistSensor;
