@@ -6,18 +6,18 @@
 class SampleBuffer {
    private:
     static const int MAX_SAMPLES = 10;
-    int samples[MAX_SAMPLES];
-    int maxVariation;
+    float samples[MAX_SAMPLES];
+    float maxVariation;
     int sampleCount;
-    int average;
+    float average;
 
    public:
-    SampleBuffer(int _maxVariation);
+    SampleBuffer(float _maxVariation);
     ~SampleBuffer(){};
 
-    void addSample(int sample);
+    void addSample(float sample);
     void calcAverage();
-    int getAverage();
+    float getAverage();
     bool isStable();
 };
 

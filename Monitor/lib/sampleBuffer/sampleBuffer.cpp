@@ -1,12 +1,12 @@
 #include "sampleBuffer.h"
 
-SampleBuffer::SampleBuffer(int _maxVariation) {
+SampleBuffer::SampleBuffer(float _maxVariation) {
     maxVariation = _maxVariation;
     sampleCount = 0;
 }
 
 
-void SampleBuffer::addSample(int sample) {
+void SampleBuffer::addSample(float sample) {
     if (sampleCount < MAX_SAMPLES) {
         samples[sampleCount] = sample;
         sampleCount++;
@@ -21,7 +21,7 @@ void SampleBuffer::calcAverage() {
     average = sum / sampleCount;
 }
 
-int SampleBuffer::getAverage() {
+float SampleBuffer::getAverage() {
     return average;
 }
 
