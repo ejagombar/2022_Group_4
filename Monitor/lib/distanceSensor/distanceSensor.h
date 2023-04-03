@@ -6,12 +6,7 @@
 
 #include "Adafruit_VL53L0X.h"
 #include "sampleBuffer.h"
-
-typedef int8_t Error;
-
-#define NO_ERROR 0
-#define FATAL_ERROR -1
-#define UNSTABLE_ERROR -2
+#include "Error.h"
 
 class DistanceSensor {
    private:

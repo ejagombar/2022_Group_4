@@ -7,6 +7,7 @@
 #include "pressureSensor.h"
 #include "sampleBuffer.h"
 #include "temperatureSensor.h"
+#include "saved.h"
 
 DistanceSensor distanceSensor;
 TemperatureSensor tempSensor;
@@ -124,47 +125,66 @@ void loop() {
 
     temp = temp << 1;
 
+    measurement measure = {temp, 1238, 9532, 2332, 0xFFFF, 0xAAAA};
+
     uint16_t height = 1238;
     uint16_t temperature = 9532;
     uint16_t depth = 2332;
     uint16_t temperature2 = 0xFFFF;
     uint16_t humidity = 0xAAAA;
 
-    memcpy(buf, &temp, 3);
-    memcpy(&buf[3], &height, 2);
-    memcpy(&buf[5], &temperature, 2);
-    memcpy(&buf[7], &depth, 2);
-    memcpy(&buf[9], &temperature2, 2);
-    memcpy(&buf[11], &humidity, 2);
-
-    uint32_t timeOut = 0;
-    uint16_t heightOut;
-    uint16_t temperatureOut;
-    uint16_t depthOut;
-    uint16_t temperature2Out;
-    uint16_t humidityOut;
-
-
-    memcpy(&timeOut, &buf, 3);
-    memcpy(&heightOut, &buf[3], 2);
-    memcpy(&temperatureOut, &buf[5], 2);
-    memcpy(&depthOut, &buf[7], 2);
-    memcpy(&temperature2Out, &buf[9], 2);
-    memcpy(&humidityOut, &buf[11], 2);
-
+    StructToArr(measure, buf);
+    measurement out = ArrToStruct(buf);
+    
     Serial.print("timeOut: ");
-    timeOut = timeOut >> 1;
-    Serial.println(timeOut);
-    Serial.print("heightOut: ");
-    Serial.println(heightOut);
-    Serial.print("temperatureOut: ");
-    Serial.println(temperatureOut);
-    Serial.print("depthOut: ");
-    Serial.println(depthOut);
-    Serial.print("temperature2Out: ");
-    Serial.println(temperature2Out);
-    Serial.print("humidityOut: ");
-    Serial.println(humidityOut);
+    Serial.println(out.time);
+    Serial.print("peatHeight: ");
+    Serial.println(out.peatHeight);
+    Serial.print("waterHeight: ");
+    Serial.println(out.waterHeight);
+    Serial.print("boxTemp: ");
+    Serial.println(out.boxTemp);
+    Serial.print("groundTemp: ");
+    Serial.println(out.groundTemp);
+    Serial.print("humidity: ");
+    Serial.println(out.humidity);
+
+
+    // memcpy(buf, &temp, 3);
+    // memcpy(&buf[3], &height, 2);
+    // memcpy(&buf[5], &temperature, 2);
+    // memcpy(&buf[7], &depth, 2);
+    // memcpy(&buf[9], &temperature2, 2);
+    // memcpy(&buf[11], &humidity, 2);
+
+    // uint32_t timeOut = 0;
+    // uint16_t heightOut;
+    // uint16_t temperatureOut;
+    // uint16_t depthOut;
+    // uint16_t temperature2Out;
+    // uint16_t humidityOut;
+
+
+    // memcpy(&timeOut, &buf, 3);
+    // memcpy(&heightOut, &buf[3], 2);
+    // memcpy(&temperatureOut, &buf[5], 2);
+    // memcpy(&depthOut, &buf[7], 2);
+    // memcpy(&temperature2Out, &buf[9], 2);
+    // memcpy(&humidityOut, &buf[11], 2);
+
+    // Serial.print("timeOut: ");
+    // timeOut = timeOut >> 1;
+    // Serial.println(timeOut);
+    // Serial.print("heightOut: ");
+    // Serial.println(heightOut);
+    // Serial.print("temperatureOut: ");
+    // Serial.println(temperatureOut);
+    // Serial.print("depthOut: ");
+    // Serial.println(depthOut);
+    // Serial.print("temperature2Out: ");
+    // Serial.println(temperature2Out);
+    // Serial.print("humidityOut: ");
+    // Serial.println(humidityOut);
     // Serial.print("Time: ");
     // Serial.println(timeOut);
     

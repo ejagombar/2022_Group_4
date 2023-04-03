@@ -6,12 +6,7 @@
 
 #include <MS5837.h>
 #include "sampleBuffer.h"
-
-typedef int8_t Error;
-
-#define NO_ERROR 0
-#define FATAL_ERROR -1
-#define UNSTABLE_ERROR -2
+#include "Error.h"
 
 class PressureSensor {
    private:

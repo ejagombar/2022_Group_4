@@ -1,5 +1,5 @@
-#ifndef SENSORERROR_H
-#define SENSORERROR_H
+#ifndef ERROR_H
+#define ERROR_H
 
 #include <Arduino.h>
 
@@ -9,4 +9,4 @@ typedef int8_t Error;
 #define FATAL_ERROR -1
 #define UNSTABLE_ERROR -2
 
-#endif  // SENSORERROR_H
+#endif  // ERROR_H

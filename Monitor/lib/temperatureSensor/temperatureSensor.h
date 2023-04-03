@@ -6,7 +6,7 @@
 #include <Wire.h>
 
 #include "sampleBuffer.h"
-#include "sensorError.h"
+#include "Error.h"
 
 class TemperatureSensor {
    private:
