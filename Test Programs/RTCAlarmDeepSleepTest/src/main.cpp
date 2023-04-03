@@ -212,20 +212,20 @@ void setup() {
     }
 
     // re-open the file for reading:
-    // myFile = SD.open("/data.txt");
-    // if (myFile) {
-    //     Serial.println("data.txt:");
+    myFile = SD.open("/data.txt");
+    if (myFile) {
+        Serial.println("data.txt:");
 
-    //     // read from the file until there's nothing else in it:
-    //     while (myFile.available()) {
-    //         Serial.write(myFile.read());
-    //     }
-    //     // close the file:
-    //     myFile.close();
-    // } else {
-    //     // if the file didn't open, print an error:
-    //     Serial.println("error opening data.txt");
-    // }
+        // read from the file until there's nothing else in it:
+        while (myFile.available()) {
+            Serial.write(myFile.read());
+        }
+        // close the file:
+        myFile.close();
+    } else {
+        // if the file didn't open, print an error:
+        Serial.println("error opening data.txt");
+    }
 
     digitalWrite(D12, LOW);
     digitalWrite(D10, LOW);
