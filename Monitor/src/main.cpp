@@ -1,11 +1,13 @@
 #include <Arduino.h>
+
 #include "distanceSensor.h"
-#include "temperatureSensor.h"
-#include "sampleBuffer.h"
 #include "pressureSensor.h"
+#include "sampleBuffer.h"
+#include "temperatureSensor.h"
 
-
-DistanceSensor DistSensor;
+DistanceSensor distanceSensor;
+TemperatureSensor tempSensor;
+PressureSensor pressureSensor;
 
 void setup() {
     // put your setup code here, to run once:
@@ -16,24 +18,56 @@ void setup() {
     pinMode(D11, OUTPUT);
     digitalWrite(D11, HIGH);
 
+    pinMode(D10, OUTPUT);
+    digitalWrite(D10, HIGH);
+
     Serial.begin(115200);
 
-    if (DistSensor.setup() != NO_ERROR) {
-        Serial.println("Error occured in setup");
+    if (distanceSensor.setup() != NO_ERROR) {
+        Serial.println("Error occured in distance sensor setup");
+    };
+    if (tempSensor.setup() != NO_ERROR) {
+        Serial.println("Error occured in temperature sensor setup");
+    };
+    if (pressureSensor.setup() != NO_ERROR) {
+        Serial.println("Error occured in pressure sensor setup");
     };
     delay(1000);
 }
 
 void loop() {
     // put your main code here, to run repeatedly:
-    Error tmp = DistSensor.measure();
+    Error tmp = distanceSensor.measure();
     if (tmp == NO_ERROR) {
         Serial.print("Distance: ");
-        Serial.print(DistSensor.getResult());
+        Serial.print(distanceSensor.getResult());
         Serial.print("mm\n");
     } else {
-        Serial.print("Error occured: ");
+        Serial.print("Distance sensor read error occured: ");
         Serial.println(tmp);
     }
-    // delay(1000);
+
+    tmp = tempSensor.measure();
+    if (tmp == NO_ERROR) {
+        Serial.print("Temperature: ");
+        Serial.print(tempSensor.getTemperature());
+        Serial.print("\n");
+    } else {
+        Serial.print("Temperature sensor read error occured: ");
+        Serial.println(tmp);
+    }
+
+    tmp = pressureSensor.measure();
+    if (tmp == NO_ERROR) {
+        Serial.print("Depth: ");
+        Serial.print(pressureSensor.getDepth());
+        Serial.print("mm\n");
+        Serial.print("Peat Temperature: ");
+        Serial.print((float)pressureSensor.getTemperature()/100);
+        Serial.print("\n");
+    } else {
+        Serial.print("Pressure sensor read error occured: ");
+        Serial.println(tmp);
+    }
+    delay(1000);
 }

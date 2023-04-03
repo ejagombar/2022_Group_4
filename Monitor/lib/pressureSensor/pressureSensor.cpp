@@ -2,7 +2,6 @@
 
 Error PressureSensor::setup() {
     if (!Sensor.init()) {
-        Serial.println(F("Failed to boot Pressure Sensor"));
         return FATAL_ERROR;
     }
     Sensor.setModel(MS5837::MS5837_02BA);
@@ -11,8 +10,8 @@ Error PressureSensor::setup() {
 }
 
 Error PressureSensor::measure() {
-    SampleBuffer depthSamples(3);
-    SampleBuffer tempSample(3);
+    SampleBuffer depthSamples(50);
+    SampleBuffer tempSample(50);
     bool errorOccured = false;
     for (int i = 0; i < SampleSize; i++)  // take the sum of multiple readings
     {

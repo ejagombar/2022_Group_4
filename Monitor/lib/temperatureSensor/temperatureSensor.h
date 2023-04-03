@@ -6,12 +6,7 @@
 #include <Wire.h>
 
 #include "sampleBuffer.h"
-
-typedef int8_t Error;
-
-#define NO_ERROR 0
-#define FATAL_ERROR -1
-#define UNSTABLE_ERROR -2
+#include "sensorError.h"
 
 class TemperatureSensor {
    private:
@@ -21,7 +16,8 @@ class TemperatureSensor {
     float humidity;
 
    public:
-    TemperatureSensor();
+    TemperatureSensor() {};
+    ~TemperatureSensor() {};
     Error setup();
     Error measure();
     float getTemperature();

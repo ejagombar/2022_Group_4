@@ -1,9 +1,7 @@
 #include "distanceSensor.h"
 
 Error DistanceSensor::setup() {
-    Serial.println("Adafruit VL53L0X test");
     if (!sensor.begin()) {
-        Serial.println(F("Failed to boot VL53L0X"));
         return FATAL_ERROR;
     }
     sensor.configSensor(Adafruit_VL53L0X::VL53L0X_SENSE_HIGH_ACCURACY);
@@ -23,7 +21,6 @@ Error DistanceSensor::measure() {
             mySamples.addSample(measureData.RangeMilliMeter);
         } else {
             errorOccured = true;
-            Serial.println("Error with range status");
         }
     }
     if (errorOccured) {
