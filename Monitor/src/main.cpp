@@ -119,16 +119,10 @@ void loop() {
     uint32_t temp = Rtc.now().unixtime();
     temp = temp - SECONDS_FROM_1970_TO_2023;
 
-    Serial.print("temp: ");
-    Serial.println(temp,HEX);
+    Serial.print("Actual Time: ");
+    Serial.println(temp);
 
-    uint32_t temp2 = temp << 1;
-    Serial.print("temp2: ");
-    Serial.println(temp2,HEX);
-
-    // uint32_t temp3 = 0xFFFFFFFF;
-    // Serial.print("temp3: ");
-    // Serial.println(temp3,HEX);
+    temp = temp << 1;
 
     uint16_t height = 1238;
     uint16_t temperature = 9532;
@@ -136,12 +130,12 @@ void loop() {
     uint16_t temperature2 = 0xFFFF;
     uint16_t humidity = 0xAAAA;
 
-    memcpy(buf, &temp2, 3);
-    memcpy(buf + 3, &height, 2);
-    memcpy(buf + 5, &temperature, 2);
-    memcpy(buf + 7, &depth, 2);
-    memcpy(buf + 9, &temperature2, 2);
-    memcpy(buf + 11, &humidity, 2);
+    memcpy(buf, &temp, 3);
+    memcpy(&buf[3], &height, 2);
+    memcpy(&buf[5], &temperature, 2);
+    memcpy(&buf[7], &depth, 2);
+    memcpy(&buf[9], &temperature2, 2);
+    memcpy(&buf[11], &humidity, 2);
 
     uint32_t timeOut = 0;
     uint16_t heightOut;
@@ -152,11 +146,25 @@ void loop() {
 
 
     memcpy(&timeOut, &buf, 3);
+    memcpy(&heightOut, &buf[3], 2);
+    memcpy(&temperatureOut, &buf[5], 2);
+    memcpy(&depthOut, &buf[7], 2);
+    memcpy(&temperature2Out, &buf[9], 2);
+    memcpy(&humidityOut, &buf[11], 2);
 
     Serial.print("timeOut: ");
-    Serial.println(timeOut,HEX);
-    Serial.print("timeOut shifted: ");
-    Serial.println(timeOut >> 1,HEX);
+    timeOut = timeOut >> 1;
+    Serial.println(timeOut);
+    Serial.print("heightOut: ");
+    Serial.println(heightOut);
+    Serial.print("temperatureOut: ");
+    Serial.println(temperatureOut);
+    Serial.print("depthOut: ");
+    Serial.println(depthOut);
+    Serial.print("temperature2Out: ");
+    Serial.println(temperature2Out);
+    Serial.print("humidityOut: ");
+    Serial.println(humidityOut);
     // Serial.print("Time: ");
     // Serial.println(timeOut);
     
@@ -164,5 +172,5 @@ void loop() {
     // Serial.println(timeOut >> 2);
     // Serial.println(buf);
     // Serial.println(Rtc.now().unixtime());
-    delay(1000);
+    delay(10000);
 }
