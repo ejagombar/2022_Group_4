@@ -3,51 +3,7 @@
 
 #include "Adafruit_VL53L0X.h"
 
-class Samples {
-   private:
-    static const int MAX_SAMPLES = 10;
-    int samples[MAX_SAMPLES];
-    int maxVariation;
-    int sampleCount;
-    int average;
 
-   public:
-    Samples(int _maxVariation) {
-        maxVariation = _maxVariation;
-        sampleCount = 0;
-    }
-
-    ~Samples(){};
-
-    void addSample(int sample) {
-        if (sampleCount < MAX_SAMPLES) {
-            samples[sampleCount] = sample;
-            sampleCount++;
-        }
-    }
-
-    void calcAverage() {
-        int sum = 0;
-        for (int i = 0; i < sampleCount; i++) {
-            sum += samples[i];
-        }
-        average = sum / sampleCount;
-    }
-
-    int getAverage() {
-        return average;
-    }
-
-    bool isStable() {
-        calcAverage();
-        for (int i = 0; i < sampleCount; i++) {
-            if (abs(samples[i] - average) > maxVariation) {
-                return false;
-            }
-        }
-        return true;
-    }
-};
 
 typedef int8_t Error;
 
@@ -82,7 +38,7 @@ Error DistanceSensor::setup() {
 }
 
 Error DistanceSensor::measure() {
-    Samples mySamples(3);
+    SampleBuffer mySamples(3);
     bool errorOccured = false;
     for (int i = 0; i < SampleSize; i++)  // take the sum of multiple readings
     {
