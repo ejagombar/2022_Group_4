@@ -1,109 +1,143 @@
 #include <Arduino.h>
-
 #include <Wire.h>
-
-#include "SHTSensor.h"
 
 #include "Adafruit_VL53L0X.h"
 
-#include "MS5837.h"
+class Samples {
+   private:
+    static const int MAX_SAMPLES = 10;
+    int samples[MAX_SAMPLES];
+    int maxVariation;
+    int sampleCount;
+    int average;
 
-MS5837 sensor;
-// To use a specific sensor instead of probing the bus use this command:
-SHTSensor sht(SHTSensor::SHTC3);
+   public:
+    Samples(int _maxVariation) {
+        maxVariation = _maxVariation;
+        sampleCount = 0;
+    }
 
-Adafruit_VL53L0X lox = Adafruit_VL53L0X();
+    ~Samples(){};
 
-void setup() {
-  // put your setup code here, to run once:
+    void addSample(int sample) {
+        if (sampleCount < MAX_SAMPLES) {
+            samples[sampleCount] = sample;
+            sampleCount++;
+        }
+    }
 
-  pinMode(D10, OUTPUT);
-  digitalWrite(D10, HIGH);
+    void calcAverage() {
+        int sum = 0;
+        for (int i = 0; i < sampleCount; i++) {
+            sum += samples[i];
+        }
+        average = sum / sampleCount;
+    }
 
-    pinMode(D12, OUTPUT);
-  digitalWrite(D12, HIGH);
+    int getAverage() {
+        return average;
+    }
 
-      pinMode(D11, OUTPUT);
-  digitalWrite(D11, HIGH);
+    bool isStable() {
+        calcAverage();
+        for (int i = 0; i < sampleCount; i++) {
+            if (abs(samples[i] - average) > maxVariation) {
+                return false;
+            }
+        }
+        return true;
+    }
+};
 
-        pinMode(D7, OUTPUT);
-  digitalWrite(D7, HIGH);
+typedef int8_t Error;
 
-  Wire.begin();
-  Serial.begin(115200);
-  delay(1000); // let serial console settle
+#define NO_ERROR 0
+#define FATAL_ERROR -1
+#define UNSTABLE_ERROR -2
 
-  if (sht.init()) {
-      Serial.print("SHTC3 boot : Success\n");
-  } 
-  else {
-      Serial.print("SHTC3 boot : Failed\n");
-  }
-  sht.setAccuracy(SHTSensor::SHT_ACCURACY_MEDIUM); // only supported by SHT3x
+class DistanceSensor {
+   private:
+    Adafruit_VL53L0X sensor;
+    VL53L0X_RangingMeasurementData_t measureData;
+    const int SampleSize = 5;
+    int result;
 
-  Serial.println("Adafruit VL53L0X test");
-  if (!lox.begin()) {
-    Serial.println(F("Failed to boot VL53L0X"));
-    while(1);
-  }
-  // power 
-  Serial.println(F("VL53L0X API Simple Ranging example\n\n")); 
+   public:
+    DistanceSensor(){};
+    ~DistanceSensor(){};
+    Error setup();
+    Error measure();
+    int getResult();
+};
 
-  while (!sensor.init()) {
-    Serial.println("Init failed!");
-    Serial.println("Are SDA/SCL connected correctly?");
-    Serial.println("Blue Robotics Bar30: White=SDA, Green=SCL");
-    Serial.println("\n\n\n");
-    delay(5000);
-  }
-
-  sensor.setModel(MS5837::MS5837_02BA);
-  sensor.setFluidDensity(997); // kg/m^3 (freshwater, 1029 for seawater)
-
+Error DistanceSensor::setup() {
+    Serial.println("Adafruit VL53L0X test");
+    if (!sensor.begin()) {
+        Serial.println(F("Failed to boot VL53L0X"));
+        return FATAL_ERROR;
+    }
+    sensor.configSensor(Adafruit_VL53L0X::VL53L0X_SENSE_HIGH_ACCURACY);
+    sensor.setMeasurementTimingBudgetMicroSeconds(200000);
+    return NO_ERROR;
 }
 
-const int SampleSize = 25;  // define the sample size
+Error DistanceSensor::measure() {
+    Samples mySamples(3);
+    bool errorOccured = false;
+    for (int i = 0; i < SampleSize; i++)  // take the sum of multiple readings
+    {
+        sensor.getSingleRangingMeasurement(&measureData, false);  // pass in 'true' to get debug data printout!
+
+        if (measureData.RangeStatus == 0)  // keep only the good readings
+        {
+            mySamples.addSample(measureData.RangeMilliMeter);
+        } else {
+            errorOccured = true;
+            Serial.println("Error with range status");
+        }
+    }
+    if (errorOccured) {
+        return FATAL_ERROR;
+    }
+    if (!mySamples.isStable()) {
+        return UNSTABLE_ERROR;
+    }
+    result = mySamples.getAverage();
+    return NO_ERROR;
+}
+
+int DistanceSensor::getResult() {
+    return result;
+}
+DistanceSensor DistSensor;
+
+void setup() {
+    // put your setup code here, to run once:
+
+    pinMode(D12, OUTPUT);
+    digitalWrite(D12, HIGH);
+
+    pinMode(D11, OUTPUT);
+    digitalWrite(D11, HIGH);
+
+    Serial.begin(115200);
+
+    if (DistSensor.setup() != NO_ERROR) {
+        Serial.println("Error occured in setup");
+    };
+    delay(1000);
+}
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  VL53L0X_RangingMeasurementData_t measure;
-  float accumulator = 0;
-
-  for(int i = 0; i < SampleSize; i++)  // take the sum of multiple readings
-  {
-    lox.rangingTest(&measure, false); // pass in 'true' to get debug data printout!
-
-    if (measure.RangeStatus != 4) // keep only the good readings
-    {  
-      accumulator += lox.readRange();
+    // put your main code here, to run repeatedly:
+    Error tmp = DistSensor.measure();
+    if (tmp == NO_ERROR) {
+        Serial.print("Distance: ");
+        Serial.print(DistSensor.getResult());
+        Serial.print("mm\n");
+    } else {
+        Serial.print("Error occured: ");
+        Serial.println(tmp);
     }
-  }
-
-  Serial.print("Height: ");
-  Serial.print(accumulator / SampleSize);  // print average of all samples
-  Serial.print(" mm\n");
-
-  if (sht.readSample()) {
-      Serial.print("Humidity: ");
-      Serial.print(sht.getHumidity(), 2);
-      Serial.print("\nTemperature (°C): ");
-      Serial.print(sht.getTemperature(), 2);
-      Serial.print("\n");
-  } else {
-      Serial.print("Error in readSample()\n");
-  }
-
-  sensor.read();
-
-  Serial.print("Pressure: "); 
-  Serial.print(sensor.pressure()); 
-  Serial.println(" mbar");
-
-  Serial.print("Altitude: "); 
-  Serial.print(sensor.altitude()); 
-  Serial.println(" m above mean sea level\n");
-
-
-  delay(50);
-
+    // delay(1000);
 }
