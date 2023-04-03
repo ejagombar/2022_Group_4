@@ -1,4 +1,7 @@
 #include <Arduino.h>
+#include "distanceSensor.h"
+#include "sampleBuffer.h"
+
 
 void setup() {
   // put your setup code here, to run once:

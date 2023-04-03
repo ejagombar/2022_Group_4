@@ -1,3 +1,8 @@
+#ifndef SAMPLEBUFFER_H
+#define SAMPLEBUFFER_H
+
+#include <Arduino.h>
+
 class SampleBuffer {
    private:
     static const int MAX_SAMPLES = 10;
@@ -15,3 +20,5 @@ class SampleBuffer {
     int getAverage();
     bool isStable();
 };
+
+#endif // SAMPLEBUFFER_H

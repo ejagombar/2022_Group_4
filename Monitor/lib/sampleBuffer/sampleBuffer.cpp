@@ -5,7 +5,6 @@ SampleBuffer::SampleBuffer(int _maxVariation) {
     sampleCount = 0;
 }
 
-SampleBuffer::~SampleBuffer(){};
 
 void SampleBuffer::addSample(int sample) {
     if (sampleCount < MAX_SAMPLES) {
