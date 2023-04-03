@@ -12,6 +12,8 @@ DistanceSensor distanceSensor;
 TemperatureSensor tempSensor;
 PressureSensor pressureSensor;
 
+#define SECONDS_FROM_1970_TO_2023 1672531200
+
 #define INTERRUPT_PIN D13
 RTC_PCF8523 Rtc;
 
@@ -59,62 +61,108 @@ void setup() {
         Serial.println("Couldn't find RTC");
         return;
     }
-    esp_sleep_enable_ext0_wakeup(GPIO_NUM_12, 0);
-    setAlarmInterval(1);  // to wake the esp
+    // esp_sleep_enable_ext0_wakeup(GPIO_NUM_12, 0);
+    // setAlarmInterval(1);  // to wake the esp
 
-    if (distanceSensor.setup() != NO_ERROR) {
-        Serial.println("Error occured in distance sensor setup");
-    };
-    if (tempSensor.setup() != NO_ERROR) {
-        Serial.println("Error occured in temperature sensor setup");
-    };
-    if (pressureSensor.setup() != NO_ERROR) {
-        Serial.println("Error occured in pressure sensor setup");
-    };
+    // if (distanceSensor.setup() != NO_ERROR) {
+    //     Serial.println("Error occured in distance sensor setup");
+    // };
+    // if (tempSensor.setup() != NO_ERROR) {
+    //     Serial.println("Error occured in temperature sensor setup");
+    // };
+    // if (pressureSensor.setup() != NO_ERROR) {
+    //     Serial.println("Error occured in pressure sensor setup");
+    // };
 
-    Error tmp = distanceSensor.measure();
-    if (tmp == NO_ERROR) {
-        Serial.print("Distance: ");
-        Serial.print(distanceSensor.getResult());
-        Serial.print("mm\n");
-    } else {
-        Serial.print("Distance sensor read error occured: ");
-        Serial.println(tmp);
-    }
+    // Error tmp = distanceSensor.measure();
+    // if (tmp == NO_ERROR) {
+    //     Serial.print("Distance: ");
+    //     Serial.print(distanceSensor.getResult());
+    //     Serial.print("mm\n");
+    // } else {
+    //     Serial.print("Distance sensor read error occured: ");
+    //     Serial.println(tmp);
+    // }
 
-    tmp = tempSensor.measure();
-    if (tmp == NO_ERROR) {
-        Serial.print("Temperature: ");
-        Serial.print(tempSensor.getTemperature());
-        Serial.print("\n");
-    } else {
-        Serial.print("Temperature sensor read error occured: ");
-        Serial.println(tmp);
-    }
+    // tmp = tempSensor.measure();
+    // if (tmp == NO_ERROR) {
+    //     Serial.print("Temperature: ");
+    //     Serial.print(tempSensor.getTemperature());
+    //     Serial.print("\n");
+    // } else {
+    //     Serial.print("Temperature sensor read error occured: ");
+    //     Serial.println(tmp);
+    // }
 
-    tmp = pressureSensor.measure();
-    if (tmp == NO_ERROR) {
-        Serial.print("Depth: ");
-        Serial.print(pressureSensor.getDepth());
-        Serial.print("mm\n");
-        Serial.print("Peat Temperature: ");
-        Serial.print((float)pressureSensor.getTemperature() / 100);
-        Serial.print("\n");
-    } else {
-        Serial.print("Pressure sensor read error occured: ");
-        Serial.println(tmp);
-    }
+    // tmp = pressureSensor.measure();
+    // if (tmp == NO_ERROR) {
+    //     Serial.print("Depth: ");
+    //     Serial.print(pressureSensor.getDepth());
+    //     Serial.print("mm\n");
+    //     Serial.print("Peat Temperature: ");
+    //     Serial.print((float)pressureSensor.getTemperature() / 100);
+    //     Serial.print("\n");
+    // } else {
+    //     Serial.print("Pressure sensor read error occured: ");
+    //     Serial.println(tmp);
+    // }
 
-    digitalWrite(D12, LOW);
-    digitalWrite(D10, LOW);
-    digitalWrite(D11, LOW);
-    digitalWrite(D6, LOW);
+    // digitalWrite(D12, LOW);
+    // digitalWrite(D10, LOW);
+    // digitalWrite(D11, LOW);
+    // digitalWrite(D6, LOW);
 
-    esp_deep_sleep_start();
+    // esp_deep_sleep_start();
 }
-
+char buf[16];
 void loop() {
-    Serial.println("HOW DID YOU GET HERE?");
+    uint32_t temp = Rtc.now().unixtime();
+    temp = temp - SECONDS_FROM_1970_TO_2023;
 
+    Serial.print("temp: ");
+    Serial.println(temp,HEX);
+
+    uint32_t temp2 = temp << 1;
+    Serial.print("temp2: ");
+    Serial.println(temp2,HEX);
+
+    // uint32_t temp3 = 0xFFFFFFFF;
+    // Serial.print("temp3: ");
+    // Serial.println(temp3,HEX);
+
+    uint16_t height = 1238;
+    uint16_t temperature = 9532;
+    uint16_t depth = 2332;
+    uint16_t temperature2 = 0xFFFF;
+    uint16_t humidity = 0xAAAA;
+
+    memcpy(buf, &temp2, 3);
+    memcpy(buf + 3, &height, 2);
+    memcpy(buf + 5, &temperature, 2);
+    memcpy(buf + 7, &depth, 2);
+    memcpy(buf + 9, &temperature2, 2);
+    memcpy(buf + 11, &humidity, 2);
+
+    uint32_t timeOut = 0;
+    uint16_t heightOut;
+    uint16_t temperatureOut;
+    uint16_t depthOut;
+    uint16_t temperature2Out;
+    uint16_t humidityOut;
+
+
+    memcpy(&timeOut, &buf, 3);
+
+    Serial.print("timeOut: ");
+    Serial.println(timeOut,HEX);
+    Serial.print("timeOut shifted: ");
+    Serial.println(timeOut >> 1,HEX);
+    // Serial.print("Time: ");
+    // Serial.println(timeOut);
+    
+    // Serial.println(timeOut << 1);
+    // Serial.println(timeOut >> 2);
+    // Serial.println(buf);
+    // Serial.println(Rtc.now().unixtime());
     delay(1000);
 }

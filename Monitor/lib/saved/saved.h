@@ -6,7 +6,7 @@
 #include <SPI.h>
 
 struct measurement {
-    int time;
+    float time;
     int depth;
     int temperature;
     int humidity;
