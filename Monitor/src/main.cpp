@@ -12,6 +12,7 @@
 DistanceSensor distanceSensor;
 TemperatureSensor tempSensor;
 PressureSensor pressureSensor;
+SDInterface sd;
 
 #define SECONDS_FROM_1970_TO_2023 1672531200
 
@@ -62,6 +63,11 @@ void setup() {
         Serial.println("Couldn't find RTC");
         return;
     }
+
+    sd.Init();
+    sd.clearFile();
+
+
     // esp_sleep_enable_ext0_wakeup(GPIO_NUM_12, 0);
     // setAlarmInterval(1);  // to wake the esp
 
@@ -115,7 +121,37 @@ void setup() {
 
     // esp_deep_sleep_start();
 }
-char buf[16];
+
+void StructToArr2(measurement measurementIn, uint8_t* arrOut) {
+    uint32_t tmp = measurementIn.time << 1;
+
+    memcpy(arrOut, &tmp, 3);
+    memcpy(&arrOut[3], &measurementIn.peatHeight, 2);
+    memcpy(&arrOut[5], &measurementIn.waterHeight, 2);
+    memcpy(&arrOut[7], &measurementIn.boxTemp, 2);
+    memcpy(&arrOut[9], &measurementIn.groundTemp, 2);
+    memcpy(&arrOut[11], &measurementIn.humidity, 2);
+}
+
+measurement ArrToStruct2(uint8_t* arrIn) {
+    measurement measurementOut = {0, 0, 0, 0, 0, 0};
+    uint32_t tmp;
+
+    memcpy(&tmp, &arrIn, 3);
+    measurementOut.time = tmp >> 1;
+
+    memcpy(&measurementOut.peatHeight, &arrIn[3], 2);
+    memcpy(&measurementOut.waterHeight, &arrIn[5], 2);
+    memcpy(&measurementOut.boxTemp, &arrIn[7], 2);
+    memcpy(&measurementOut.groundTemp, &arrIn[9], 2);
+    memcpy(&measurementOut.humidity, &arrIn[11], 2);
+
+    return measurementOut;
+}
+
+
+uint8_t buf[13];
+int i = 0;
 void loop() {
     uint32_t temp = Rtc.now().unixtime();
     temp = temp - SECONDS_FROM_1970_TO_2023;
@@ -125,16 +161,21 @@ void loop() {
 
     temp = temp << 1;
 
-    measurement measure = {temp, 1238, 9532, 2332, 0xFFFF, 0xAAAA};
+    measurement measure = {temp, 100*i, 128*i, 2332, 0xFF*i, 0xAAAA};
 
-    uint16_t height = 1238;
-    uint16_t temperature = 9532;
-    uint16_t depth = 2332;
-    uint16_t temperature2 = 0xFFFF;
-    uint16_t humidity = 0xAAAA;
+    StructToArr2(measure, buf);
 
-    StructToArr(measure, buf);
-    measurement out = ArrToStruct(buf);
+
+    sd.openFileWrite(DataFileOpen);
+    sd.saveMeasurement(buf);
+
+    uint8_t buf2[13] = {0,0,0,0,0,0,0,0,0,0,0,0,0};
+
+    if (sd.getMeasurements(i,buf2,1) == FATAL_ERROR) {
+        Serial.println("Fatal error occured");
+    }
+    i++;
+   measurement out = ArrToStruct2(buf2);
     
     Serial.print("timeOut: ");
     Serial.println(out.time);
@@ -147,50 +188,7 @@ void loop() {
     Serial.print("groundTemp: ");
     Serial.println(out.groundTemp);
     Serial.print("humidity: ");
-    Serial.println(out.humidity);
+    Serial.println(out.humidity);    
 
-
-    // memcpy(buf, &temp, 3);
-    // memcpy(&buf[3], &height, 2);
-    // memcpy(&buf[5], &temperature, 2);
-    // memcpy(&buf[7], &depth, 2);
-    // memcpy(&buf[9], &temperature2, 2);
-    // memcpy(&buf[11], &humidity, 2);
-
-    // uint32_t timeOut = 0;
-    // uint16_t heightOut;
-    // uint16_t temperatureOut;
-    // uint16_t depthOut;
-    // uint16_t temperature2Out;
-    // uint16_t humidityOut;
-
-
-    // memcpy(&timeOut, &buf, 3);
-    // memcpy(&heightOut, &buf[3], 2);
-    // memcpy(&temperatureOut, &buf[5], 2);
-    // memcpy(&depthOut, &buf[7], 2);
-    // memcpy(&temperature2Out, &buf[9], 2);
-    // memcpy(&humidityOut, &buf[11], 2);
-
-    // Serial.print("timeOut: ");
-    // timeOut = timeOut >> 1;
-    // Serial.println(timeOut);
-    // Serial.print("heightOut: ");
-    // Serial.println(heightOut);
-    // Serial.print("temperatureOut: ");
-    // Serial.println(temperatureOut);
-    // Serial.print("depthOut: ");
-    // Serial.println(depthOut);
-    // Serial.print("temperature2Out: ");
-    // Serial.println(temperature2Out);
-    // Serial.print("humidityOut: ");
-    // Serial.println(humidityOut);
-    // Serial.print("Time: ");
-    // Serial.println(timeOut);
-    
-    // Serial.println(timeOut << 1);
-    // Serial.println(timeOut >> 2);
-    // Serial.println(buf);
-    // Serial.println(Rtc.now().unixtime());
     delay(10000);
 }
