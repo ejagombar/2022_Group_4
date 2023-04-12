@@ -122,9 +122,10 @@ void setup() {
 }
 
 void StructToArr2(measurement measurementIn, uint8_t* arrOut) {
-    uint32_t tmp = measurementIn.time << 1;
+    uint32_t tmp = measurementIn.time << 0;
 
-    memcpy(arrOut, &tmp, 3);
+
+    memcpy(&arrOut[0], &tmp, 3);
     memcpy(&arrOut[3], &measurementIn.peatHeight, 2);
     memcpy(&arrOut[5], &measurementIn.waterHeight, 2);
     memcpy(&arrOut[7], &measurementIn.boxTemp, 2);
@@ -134,10 +135,12 @@ void StructToArr2(measurement measurementIn, uint8_t* arrOut) {
 
 measurement ArrToStruct2(uint8_t* arrIn) {
     measurement measurementOut = {0, 0, 0, 0, 0, 0};
-    uint32_t tmp;
+    uint32_t tmp = 0;
 
-    memcpy(&tmp, &arrIn, 3);
-    measurementOut.time = tmp >> 1;
+    memcpy(&tmp, &arrIn[0], 3);
+
+    measurementOut.time = tmp >> 0;
+    Serial.println(measurementOut.time,HEX);
 
     memcpy(&measurementOut.peatHeight, &arrIn[3], 2);
     memcpy(&measurementOut.waterHeight, &arrIn[5], 2);
@@ -155,59 +158,47 @@ void loop() {
     // readIt();
     // Serial.println("Done");
 
-    // uint32_t temp = Rtc.now().unixtime();
-    // temp = temp - SECONDS_FROM_1970_TO_2023;
+    uint32_t temp = Rtc.now().unixtime();
+    temp = temp - SECONDS_FROM_1970_TO_2023;
+    temp = temp / 60; // minutes
 
-    // Serial.print("Actual Time: ");
-    // Serial.println(temp);
+    Serial.print("Actual Time: ");
+    Serial.println(temp);
+    //temp = temp << 1;
 
-    // temp = temp << 1;
 
-    // measurement measure = {temp, 100 * i, 128 * i, 2332, 0xFF * i, 0xAAAA};
+    measurement measure = {temp, 100 * i, 128 * i, 2332, 0xFF * i, 0xAAAA};
 
-    // StructToArr2(measure, buf);
+    StructToArr2(measure, buf);
 
     // sd.openFileWrite(DataFileOpen);
     // Serial.print("Measurement saved with code: ");
-    uint8_t buf2[13] = {0xFF, 0, 0xFF, 0, 0xFF, 0xFF, 0xFF, 0, 0xFF, 0, 0xFF, 0, 0};
-    sd.saveMeasurement(buf2);
-    sd.getMeasurements(0, buf, 1);
-    Serial.println(buf[0]);
-    Serial.println(buf[1]);
-    Serial.println(buf[2]);
-    Serial.println(buf[3]);
-    Serial.println(buf[4]);
-    Serial.println(buf[5]);
-    Serial.println(buf[6]);
-    Serial.println(buf[7]);
-    Serial.println(buf[8]);
-    Serial.println(buf[9]);
-    Serial.println(buf[10]);
-    Serial.println(buf[11]);
-    Serial.println(buf[12]);
-    
+    //uint8_t buf2[13] = {0xFF, 0, 0xFF, 0, 0xFF, 0xFF, 0xFF, 0, 0xFF, 0, 0xFF, 0, 0};
+    sd.saveMeasurement(buf);
 
 
-    // uint8_t buf2[13] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-    // if (sd.getMeasurements(i, buf2, 1) == FATAL_ERROR) {
-    //     Serial.println("Fatal error occured");
-    // }
-    // i++;
-    // measurement out = ArrToStruct2(buf2);
 
-    // Serial.print("timeOut: ");
-    // Serial.println(out.time);
-    // Serial.print("peatHeight: ");
-    // Serial.println(out.peatHeight);
-    // Serial.print("waterHeight: ");
-    // Serial.println(out.waterHeight);
-    // Serial.print("boxTemp: ");
-    // Serial.println(out.boxTemp);
-    // Serial.print("groundTemp: ");
-    // Serial.println(out.groundTemp);
-    // Serial.print("humidity: ");
-    // Serial.println(out.humidity);
+    uint8_t buf2[13] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+    if (sd.getMeasurements(i, buf2, 1) == FATAL_ERROR) {
+        Serial.println("Fatal error occured");
+    }
+    i++;
+    measurement out = ArrToStruct2(buf2);
+
+    Serial.print("timeOut: ");
+    Serial.println(out.time);
+    Serial.print("peatHeight: ");
+    Serial.println(out.peatHeight);
+    Serial.print("waterHeight: ");
+    Serial.println(out.waterHeight);
+    Serial.print("boxTemp: ");
+    Serial.println(out.boxTemp);
+    Serial.print("groundTemp: ");
+    Serial.println(out.groundTemp);
+    Serial.print("humidity: ");
+    Serial.println(out.humidity);
 
     delay(10000);
 }

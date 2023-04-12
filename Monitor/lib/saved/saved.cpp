@@ -23,16 +23,6 @@ void SDInterface::closeFile() {
     openFile = NoneOpen;
 }
 
-void StructToArr(measurement measurementIn, uint8_t *arrOut) {
-    uint32_t tmp = measurementIn.time << 1;
-
-    memcpy(arrOut, &tmp, 3);
-    memcpy(&arrOut[3], &measurementIn.peatHeight, 2);
-    memcpy(&arrOut[5], &measurementIn.waterHeight, 2);
-    memcpy(&arrOut[7], &measurementIn.boxTemp, 2);
-    memcpy(&arrOut[9], &measurementIn.groundTemp, 2);
-    memcpy(&arrOut[11], &measurementIn.humidity, 2);
-}
 
 Error SDInterface::saveMeasurement(const uint8_t *arrIn) {
 
@@ -64,21 +54,6 @@ Error SDInterface::saveMeasurement(const uint8_t *arrIn) {
     CurrentFile.write(arrIn, 13);
     CurrentFile.close();
     return NO_ERROR;
-}
-measurement ArrToStruct(uint8_t *arrIn) {
-    measurement measurementOut = {0, 0, 0, 0, 0, 0};
-    uint32_t tmp;
-
-    memcpy(&tmp, &arrIn, 3);
-    measurementOut.time = tmp >> 1;
-
-    memcpy(&measurementOut.peatHeight, &arrIn[3], 2);
-    memcpy(&measurementOut.waterHeight, &arrIn[5], 2);
-    memcpy(&measurementOut.boxTemp, &arrIn[7], 2);
-    memcpy(&measurementOut.groundTemp, &arrIn[9], 2);
-    memcpy(&measurementOut.humidity, &arrIn[11], 2);
-
-    return measurementOut;
 }
 
 Error SDInterface::getMeasurements(int index, uint8_t *arrOut, int sampleCount) {
