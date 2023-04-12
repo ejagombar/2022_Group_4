@@ -25,13 +25,24 @@ enum OpenFile {
     NoneOpen,
 };
 
+
+
+struct Datastore {
+    uint16_t x;
+    uint16_t y;
+};
+
 #define CSPIN D9
+
+void readIt();
+void makeData();
 
 class SDInterface {
    private:
     uint8_t deviceID;
     OpenFile openFile = NoneOpen;
     File CurrentFile;
+    String filename = "/logdata2.bin";
 
    public:
     SDInterface(){};

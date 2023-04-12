@@ -6,8 +6,8 @@
 #include "distanceSensor.h"
 #include "pressureSensor.h"
 #include "sampleBuffer.h"
-#include "temperatureSensor.h"
 #include "saved.h"
+#include "temperatureSensor.h"
 
 DistanceSensor distanceSensor;
 TemperatureSensor tempSensor;
@@ -66,7 +66,6 @@ void setup() {
 
     sd.Init();
     sd.clearFile();
-
 
     // esp_sleep_enable_ext0_wakeup(GPIO_NUM_12, 0);
     // setAlarmInterval(1);  // to wake the esp
@@ -149,46 +148,66 @@ measurement ArrToStruct2(uint8_t* arrIn) {
     return measurementOut;
 }
 
-
-uint8_t buf[13];
+uint8_t buf[13] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 int i = 0;
 void loop() {
-    uint32_t temp = Rtc.now().unixtime();
-    temp = temp - SECONDS_FROM_1970_TO_2023;
+    // makeData();
+    // readIt();
+    // Serial.println("Done");
 
-    Serial.print("Actual Time: ");
-    Serial.println(temp);
+    // uint32_t temp = Rtc.now().unixtime();
+    // temp = temp - SECONDS_FROM_1970_TO_2023;
 
-    temp = temp << 1;
+    // Serial.print("Actual Time: ");
+    // Serial.println(temp);
 
-    measurement measure = {temp, 100*i, 128*i, 2332, 0xFF*i, 0xAAAA};
+    // temp = temp << 1;
 
-    StructToArr2(measure, buf);
+    // measurement measure = {temp, 100 * i, 128 * i, 2332, 0xFF * i, 0xAAAA};
 
+    // StructToArr2(measure, buf);
 
-    sd.openFileWrite(DataFileOpen);
-    sd.saveMeasurement(buf);
-
-    uint8_t buf2[13] = {0,0,0,0,0,0,0,0,0,0,0,0,0};
-
-    if (sd.getMeasurements(i,buf2,1) == FATAL_ERROR) {
-        Serial.println("Fatal error occured");
-    }
-    i++;
-   measurement out = ArrToStruct2(buf2);
+    // sd.openFileWrite(DataFileOpen);
+    // Serial.print("Measurement saved with code: ");
+    uint8_t buf2[13] = {0xFF, 0, 0xFF, 0, 0xFF, 0xFF, 0xFF, 0, 0xFF, 0, 0xFF, 0, 0};
+    sd.saveMeasurement(buf2);
+    sd.getMeasurements(0, buf, 1);
+    Serial.println(buf[0]);
+    Serial.println(buf[1]);
+    Serial.println(buf[2]);
+    Serial.println(buf[3]);
+    Serial.println(buf[4]);
+    Serial.println(buf[5]);
+    Serial.println(buf[6]);
+    Serial.println(buf[7]);
+    Serial.println(buf[8]);
+    Serial.println(buf[9]);
+    Serial.println(buf[10]);
+    Serial.println(buf[11]);
+    Serial.println(buf[12]);
     
-    Serial.print("timeOut: ");
-    Serial.println(out.time);
-    Serial.print("peatHeight: ");
-    Serial.println(out.peatHeight);
-    Serial.print("waterHeight: ");
-    Serial.println(out.waterHeight);
-    Serial.print("boxTemp: ");
-    Serial.println(out.boxTemp);
-    Serial.print("groundTemp: ");
-    Serial.println(out.groundTemp);
-    Serial.print("humidity: ");
-    Serial.println(out.humidity);    
+
+
+    // uint8_t buf2[13] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+    // if (sd.getMeasurements(i, buf2, 1) == FATAL_ERROR) {
+    //     Serial.println("Fatal error occured");
+    // }
+    // i++;
+    // measurement out = ArrToStruct2(buf2);
+
+    // Serial.print("timeOut: ");
+    // Serial.println(out.time);
+    // Serial.print("peatHeight: ");
+    // Serial.println(out.peatHeight);
+    // Serial.print("waterHeight: ");
+    // Serial.println(out.waterHeight);
+    // Serial.print("boxTemp: ");
+    // Serial.println(out.boxTemp);
+    // Serial.print("groundTemp: ");
+    // Serial.println(out.groundTemp);
+    // Serial.print("humidity: ");
+    // Serial.println(out.humidity);
 
     delay(10000);
 }
