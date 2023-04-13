@@ -174,7 +174,7 @@ void loop() {
 
     Serial.print("timeOut: ");
     DateTime timeOut(out.time+SECONDS_FROM_1970_TO_2023);
-    char time_format_buf[] = "YYYY-MM-DDThh:mm:00";
+    char time_format_buf[] = "YYYY-MM-DD hh:mm:00";
     Serial.println(timeOut.toString(time_format_buf));
     Serial.print("peatHeight: ");
     Serial.println(out.peatHeight);
