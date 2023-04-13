@@ -16,16 +16,11 @@ struct measurement {
     uint16_t humidity;
 };
 
-// measurement ArrToStruct(uint8_t* arrIn);
-// void StructToArr(measurement measurementIn, uint8_t* arrOut);
-
 enum OpenFile {
     MonitorDataFileOpen,
     DataFileOpen,
     NoneOpen,
 };
-
-
 
 struct Datastore {
     uint16_t x;
@@ -34,28 +29,26 @@ struct Datastore {
 
 #define CSPIN D9
 
-void readIt();
-void makeData();
+measurement ArrToStruct(uint8_t* arrIn);
+void StructToArr(measurement measurementIn, uint8_t* arrOut);
 
 class SDInterface {
    private:
     uint8_t deviceID;
     OpenFile openFile = NoneOpen;
     File CurrentFile;
-    String filename = "/logdata2.bin";
+    String datalogFilename = "/logdata.bin";
+    String errorlogFilename = "/errorlog.txt";
 
    public:
     SDInterface(){};
     ~SDInterface(){};
     Error Init();
-    void openFileWrite(OpenFile choice);
-    void closeFile();
     Error setID(uint8_t idIn);
     uint8_t getID();
     Error saveMeasurement(const uint8_t* arrIn);
-    Error getMeasurements(int index, uint8_t* arrOut,int sampleCount);
-    void clearFile();
+    Error getMeasurements(int index, uint8_t* arrOut, int sampleCount);
+    Error logError(String messageIn);
 };
-
 
 #endif
