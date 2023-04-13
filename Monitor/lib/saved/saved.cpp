@@ -9,7 +9,6 @@ Error SDInterface::Init() {
 }
 
 Error SDInterface::saveMeasurement(const uint8_t* arrIn) {
-    Serial.println("Fetching pre-made data");
     CurrentFile = SD.open(datalogFilename, FILE_WRITE);
     if (CurrentFile) {
         CurrentFile.seek(CurrentFile.size());
