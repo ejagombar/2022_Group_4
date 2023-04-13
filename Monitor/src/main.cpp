@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <RTClib.h>
 #include <SPI.h>
+#include <String.h>
 #include <Wire.h>
 
 #include "distanceSensor.h"
@@ -13,6 +14,11 @@ DistanceSensor distanceSensor;
 TemperatureSensor tempSensor;
 PressureSensor pressureSensor;
 SDInterface sd;
+
+#define PressureLidarVcc1 D11
+#define PressureLidarVcc2 D12
+#define TempVcc D10
+#define SDVcc D6
 
 #define SECONDS_FROM_1970_TO_2023 1672531200
 
@@ -42,19 +48,80 @@ void setAlarmInterval(uint8_t interval) {
     Serial.println(String("Alarm Time: ") + alarm_time.toString(alarm_time_buf));
 }
 
+measurement takeSample() {
+    measurement sample;
+    Error err;
+    String errorMsg;
+    DateTime currentTime = Rtc.now();
+    char time_format_buf[] = "YYYY-MM-DDThh:mm:00";
+
+    //=Setup Sensors================================================================================================
+
+
+    //=Measure Sensors================================================================================================
+
+    err = tempSensor.measure();
+    if (err == NO_ERROR) {
+        sample.boxTemp = (uint16_t)(tempSensor.getTemperature() * 100);
+        sample.humidity = (uint16_t)(tempSensor.getHumidity() * 100);
+    } else {
+        errorMsg = currentTime.toString(time_format_buf) + String(": Temperature sensor read error: ") + String(err);
+        sd.logError(errorMsg);
+        Serial.println(errorMsg);
+    }
+
+    err = distanceSensor.measure();
+    if (err == NO_ERROR) {
+        sample.peatHeight = (uint16_t)distanceSensor.getResult();
+    } else {
+        errorMsg = currentTime.toString(time_format_buf) + String(": Distance sensor read error: ") + String(err);
+        sd.logError(errorMsg);
+        Serial.println(errorMsg);
+    }
+
+    err = pressureSensor.measure();
+    if (err == NO_ERROR) {
+        sample.waterHeight = (uint16_t)(pressureSensor.getDepth() * 100);
+        sample.groundTemp = (uint16_t)(pressureSensor.getTemperature() * 100);
+    } else {
+        errorMsg = currentTime.toString(time_format_buf) + String(": Pressure sensor read error: ") + String(err);
+        sd.logError(errorMsg);
+        Serial.println(errorMsg);
+    }
+
+        Serial.print("timeOut: ");
+    Serial.println(sample.time);
+    Serial.print("peatHeight: ");
+    Serial.println(sample.peatHeight);
+    Serial.print("waterHeight: ");
+    Serial.println(sample.waterHeight);
+    Serial.print("boxTemp: ");
+    Serial.println(sample.boxTemp);
+    Serial.print("groundTemp: ");
+    Serial.println(sample.groundTemp);
+    Serial.print("humidity: ");
+    Serial.println(sample.humidity);
+
+    // digitalWrite(PressureLidarVcc1, LOW);
+    // digitalWrite(PressureLidarVcc2, LOW);
+    // digitalWrite(TempVcc, LOW);
+
+    return sample;
+}
+
 void setup() {
     // put your setup code here, to run once:
     Serial.begin(115200);
 
-    pinMode(D12, OUTPUT);
-    pinMode(D11, OUTPUT);
-    pinMode(D10, OUTPUT);
-    pinMode(D6, OUTPUT);
+    pinMode(PressureLidarVcc1, OUTPUT);  // PressureLidarVcc1
+    pinMode(PressureLidarVcc2, OUTPUT);  // PressureLidarVcc2
+    pinMode(TempVcc, OUTPUT);            // TempVcc
+    pinMode(SDVcc, OUTPUT);              // SDVcc
 
-    digitalWrite(D12, HIGH);
-    digitalWrite(D11, HIGH);
-    digitalWrite(D10, HIGH);
-    digitalWrite(D6, HIGH);
+    digitalWrite(PressureLidarVcc1, HIGH);
+    digitalWrite(PressureLidarVcc2, HIGH);
+    digitalWrite(TempVcc, HIGH);
+    digitalWrite(SDVcc, HIGH);
 
     pinMode(INTERRUPT_PIN, INPUT_PULLUP);
     attachInterrupt(INTERRUPT_PIN, alarmISR, FALLING);
@@ -65,119 +132,57 @@ void setup() {
     }
 
     sd.Init();
-    sd.clearFile();
 
-    // esp_sleep_enable_ext0_wakeup(GPIO_NUM_12, 0);
-    // setAlarmInterval(1);  // to wake the esp
+    esp_sleep_enable_ext0_wakeup(GPIO_NUM_12, 0);
+    setAlarmInterval(1);  // to wake the esp
 
-    // if (distanceSensor.setup() != NO_ERROR) {
-    //     Serial.println("Error occured in distance sensor setup");
-    // };
-    // if (tempSensor.setup() != NO_ERROR) {
-    //     Serial.println("Error occured in temperature sensor setup");
-    // };
-    // if (pressureSensor.setup() != NO_ERROR) {
-    //     Serial.println("Error occured in pressure sensor setup");
-    // };
+    Error err;
+    String errorMsg;
+    DateTime currentTime = Rtc.now();
+    char time_format_buf[] = "YYYY-MM-DDThh:mm:00";
 
-    // Error tmp = distanceSensor.measure();
-    // if (tmp == NO_ERROR) {
-    //     Serial.print("Distance: ");
-    //     Serial.print(distanceSensor.getResult());
-    //     Serial.print("mm\n");
-    // } else {
-    //     Serial.print("Distance sensor read error occured: ");
-    //     Serial.println(tmp);
-    // }
+    //=Setup Sensors================================================================================================
 
-    // tmp = tempSensor.measure();
-    // if (tmp == NO_ERROR) {
-    //     Serial.print("Temperature: ");
-    //     Serial.print(tempSensor.getTemperature());
-    //     Serial.print("\n");
-    // } else {
-    //     Serial.print("Temperature sensor read error occured: ");
-    //     Serial.println(tmp);
-    // }
+    err = distanceSensor.setup();
+    if (err != NO_ERROR) {
+        errorMsg = currentTime.toString(time_format_buf) + String(": Distance sensor setup error: ") + String(err);
+        sd.logError(errorMsg);
+        Serial.println(errorMsg);
+    };
 
-    // tmp = pressureSensor.measure();
-    // if (tmp == NO_ERROR) {
-    //     Serial.print("Depth: ");
-    //     Serial.print(pressureSensor.getDepth());
-    //     Serial.print("mm\n");
-    //     Serial.print("Peat Temperature: ");
-    //     Serial.print((float)pressureSensor.getTemperature() / 100);
-    //     Serial.print("\n");
-    // } else {
-    //     Serial.print("Pressure sensor read error occured: ");
-    //     Serial.println(tmp);
-    // }
+    err = tempSensor.setup();
+    if (err != NO_ERROR) {
+        errorMsg = currentTime.toString(time_format_buf) + String(": Temperature sensor setup error: ") + String(err);
+        sd.logError(errorMsg);
+        Serial.println(errorMsg);
+    };
 
-    // digitalWrite(D12, LOW);
-    // digitalWrite(D10, LOW);
-    // digitalWrite(D11, LOW);
-    // digitalWrite(D6, LOW);
-
+    err = pressureSensor.setup();
+    if (err != NO_ERROR) {
+        errorMsg = currentTime.toString(time_format_buf) + String(": Pressure sensor setup error: ") + String(err);
+        sd.logError(errorMsg);
+        Serial.println(errorMsg);
+    };
+    // digitalWrite(SDVcc, LOW);
     // esp_deep_sleep_start();
 }
 
-void StructToArr2(measurement measurementIn, uint8_t* arrOut) {
-    uint32_t tmp = measurementIn.time << 0;
-
-
-    memcpy(&arrOut[0], &tmp, 3);
-    memcpy(&arrOut[3], &measurementIn.peatHeight, 2);
-    memcpy(&arrOut[5], &measurementIn.waterHeight, 2);
-    memcpy(&arrOut[7], &measurementIn.boxTemp, 2);
-    memcpy(&arrOut[9], &measurementIn.groundTemp, 2);
-    memcpy(&arrOut[11], &measurementIn.humidity, 2);
-}
-
-measurement ArrToStruct2(uint8_t* arrIn) {
-    measurement measurementOut = {0, 0, 0, 0, 0, 0};
-    uint32_t tmp = 0;
-
-    memcpy(&tmp, &arrIn[0], 3);
-
-    measurementOut.time = tmp >> 0;
-    Serial.println(measurementOut.time,HEX);
-
-    memcpy(&measurementOut.peatHeight, &arrIn[3], 2);
-    memcpy(&measurementOut.waterHeight, &arrIn[5], 2);
-    memcpy(&measurementOut.boxTemp, &arrIn[7], 2);
-    memcpy(&measurementOut.groundTemp, &arrIn[9], 2);
-    memcpy(&measurementOut.humidity, &arrIn[11], 2);
-
-    return measurementOut;
-}
-
 uint8_t buf[13] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-int i = 0;
+int i = 0;  
 void loop() {
-    // makeData();
-    // readIt();
-    // Serial.println("Done");
-
+    sd.logError("Looping..");
     uint32_t temp = Rtc.now().unixtime();
     temp = temp - SECONDS_FROM_1970_TO_2023;
-    temp = temp / 60; // minutes
+    temp = temp / 60;  // minutes
 
     Serial.print("Actual Time: ");
     Serial.println(temp);
-    //temp = temp << 1;
 
+    measurement measure = takeSample();
 
-    measurement measure = {temp, 100 * i, 128 * i, 2332, 0xFF * i, 0xAAAA};
+    StructToArr(measure, buf);
 
-    StructToArr2(measure, buf);
-
-    // sd.openFileWrite(DataFileOpen);
-    // Serial.print("Measurement saved with code: ");
-    //uint8_t buf2[13] = {0xFF, 0, 0xFF, 0, 0xFF, 0xFF, 0xFF, 0, 0xFF, 0, 0xFF, 0, 0};
     sd.saveMeasurement(buf);
-
-
-
 
     uint8_t buf2[13] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -185,7 +190,7 @@ void loop() {
         Serial.println("Fatal error occured");
     }
     i++;
-    measurement out = ArrToStruct2(buf2);
+    measurement out = ArrToStruct(buf2);
 
     Serial.print("timeOut: ");
     Serial.println(out.time);
@@ -200,5 +205,5 @@ void loop() {
     Serial.print("humidity: ");
     Serial.println(out.humidity);
 
-    delay(10000);
+    delay(5000);
 }
