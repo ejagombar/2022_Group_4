@@ -85,8 +85,7 @@ measurement takeSample(DateTime currentTime) {
         Serial.println(errorMsg);
     }
 
-    uint32_t minutes = (currentTime.unixtime() - SECONDS_FROM_1970_TO_2023) / 60;  // number of minutes since 01/01/2023
-    sample.time = 239823;
+    sample.time = (currentTime.unixtime() - SECONDS_FROM_1970_TO_2023);  // number of seconds since 01/01/2023
 
     // digitalWrite(PressureLidarVcc1, LOW);
     // digitalWrite(PressureLidarVcc2, LOW);
@@ -174,7 +173,9 @@ void loop() {
     measurement out = ArrToStruct(buf2);
 
     Serial.print("timeOut: ");
-    Serial.println(out.time);
+    DateTime timeOut(out.time+SECONDS_FROM_1970_TO_2023);
+    char time_format_buf[] = "YYYY-MM-DDThh:mm:00";
+    Serial.println(timeOut.toString(time_format_buf));
     Serial.print("peatHeight: ");
     Serial.println(out.peatHeight);
     Serial.print("waterHeight: ");
