@@ -25,6 +25,8 @@ SDInterface sd;
 #define INTERRUPT_PIN D13
 RTC_PCF8523 Rtc;
 
+DateTime currentTime;
+
 volatile bool alarm_triggered = false;
 
 void alarmISR() {
@@ -48,17 +50,11 @@ void setAlarmInterval(uint8_t interval) {
     Serial.println(String("Alarm Time: ") + alarm_time.toString(alarm_time_buf));
 }
 
-measurement takeSample() {
+measurement takeSample(DateTime currentTime) {
     measurement sample;
     Error err;
     String errorMsg;
-    DateTime currentTime = Rtc.now();
     char time_format_buf[] = "YYYY-MM-DDThh:mm:00";
-
-    //=Setup Sensors================================================================================================
-
-
-    //=Measure Sensors================================================================================================
 
     err = tempSensor.measure();
     if (err == NO_ERROR) {
@@ -66,15 +62,6 @@ measurement takeSample() {
         sample.humidity = (uint16_t)(tempSensor.getHumidity() * 100);
     } else {
         errorMsg = currentTime.toString(time_format_buf) + String(": Temperature sensor read error: ") + String(err);
-        sd.logError(errorMsg);
-        Serial.println(errorMsg);
-    }
-
-    err = distanceSensor.measure();
-    if (err == NO_ERROR) {
-        sample.peatHeight = (uint16_t)distanceSensor.getResult();
-    } else {
-        errorMsg = currentTime.toString(time_format_buf) + String(": Distance sensor read error: ") + String(err);
         sd.logError(errorMsg);
         Serial.println(errorMsg);
     }
@@ -89,18 +76,17 @@ measurement takeSample() {
         Serial.println(errorMsg);
     }
 
-        Serial.print("timeOut: ");
-    Serial.println(sample.time);
-    Serial.print("peatHeight: ");
-    Serial.println(sample.peatHeight);
-    Serial.print("waterHeight: ");
-    Serial.println(sample.waterHeight);
-    Serial.print("boxTemp: ");
-    Serial.println(sample.boxTemp);
-    Serial.print("groundTemp: ");
-    Serial.println(sample.groundTemp);
-    Serial.print("humidity: ");
-    Serial.println(sample.humidity);
+    err = distanceSensor.measure();
+    if (err == NO_ERROR) {
+        sample.peatHeight = (uint16_t)distanceSensor.getResult();
+    } else {
+        errorMsg = currentTime.toString(time_format_buf) + String(": Distance sensor read error: ") + String(err);
+        sd.logError(errorMsg);
+        Serial.println(errorMsg);
+    }
+
+    uint32_t minutes = (currentTime.unixtime() - SECONDS_FROM_1970_TO_2023) / 60;  // number of minutes since 01/01/2023
+    sample.time = 239823;
 
     // digitalWrite(PressureLidarVcc1, LOW);
     // digitalWrite(PressureLidarVcc2, LOW);
@@ -131,14 +117,17 @@ void setup() {
         return;
     }
 
+    //Rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+
     sd.Init();
+    sd.DeleteFiles();
 
     esp_sleep_enable_ext0_wakeup(GPIO_NUM_12, 0);
     setAlarmInterval(1);  // to wake the esp
 
     Error err;
     String errorMsg;
-    DateTime currentTime = Rtc.now();
+    currentTime = Rtc.now();
     char time_format_buf[] = "YYYY-MM-DDThh:mm:00";
 
     //=Setup Sensors================================================================================================
@@ -168,21 +157,13 @@ void setup() {
 }
 
 uint8_t buf[13] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-int i = 0;  
+int i = 0;
 void loop() {
-    sd.logError("Looping..");
-    uint32_t temp = Rtc.now().unixtime();
-    temp = temp - SECONDS_FROM_1970_TO_2023;
-    temp = temp / 60;  // minutes
-
-    Serial.print("Actual Time: ");
-    Serial.println(temp);
-
-    measurement measure = takeSample();
+    measurement measure = takeSample(currentTime);
 
     StructToArr(measure, buf);
 
-    sd.saveMeasurement(buf);
+    sd.saveMeasurement(i, buf);
 
     uint8_t buf2[13] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 

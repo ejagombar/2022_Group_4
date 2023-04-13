@@ -8,11 +8,12 @@ Error SDInterface::Init() {
     }
 }
 
-Error SDInterface::saveMeasurement(const uint8_t* arrIn) {
+Error SDInterface::saveMeasurement(int index, const uint8_t* arrIn) {
     CurrentFile = SD.open(datalogFilename, FILE_WRITE);
     if (CurrentFile) {
-        CurrentFile.seek(CurrentFile.size());
+        CurrentFile.seek(index * 13);
         CurrentFile.write(arrIn, 13);
+
         CurrentFile.close();
         return NO_ERROR;
     } else {
@@ -23,6 +24,8 @@ Error SDInterface::saveMeasurement(const uint8_t* arrIn) {
 Error SDInterface::getMeasurements(int index, uint8_t* arrOut, int sampleCount) {
     CurrentFile = SD.open(datalogFilename, FILE_READ);
     if (CurrentFile) {
+        Serial.print("Starting read from: ");
+        Serial.println(index * 13);
         CurrentFile.seek(index * 13);
         CurrentFile.read(arrOut, 13 * sampleCount);
         CurrentFile.close();
@@ -43,6 +46,11 @@ Error SDInterface::logError(String messageIn) {
     }
 }
 
+void SDInterface::DeleteFiles() {
+    SD.remove(datalogFilename);
+    SD.remove(errorlogFilename);
+}
+
 void StructToArr(measurement measurementIn, uint8_t* arrOut) {
     uint32_t tmp = measurementIn.time << 0;
 
@@ -61,7 +69,6 @@ measurement ArrToStruct(uint8_t* arrIn) {
     memcpy(&tmp, &arrIn[0], 3);
 
     measurementOut.time = tmp >> 0;
-    Serial.println(measurementOut.time, HEX);
 
     memcpy(&measurementOut.peatHeight, &arrIn[3], 2);
     memcpy(&measurementOut.waterHeight, &arrIn[5], 2);

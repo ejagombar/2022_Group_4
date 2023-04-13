@@ -46,9 +46,10 @@ class SDInterface {
     Error Init();
     Error setID(uint8_t idIn);
     uint8_t getID();
-    Error saveMeasurement(const uint8_t* arrIn);
+    Error saveMeasurement(int index, const uint8_t* arrIn);
     Error getMeasurements(int index, uint8_t* arrOut, int sampleCount);
     Error logError(String messageIn);
+    void DeleteFiles();
 };
 
 #endif
