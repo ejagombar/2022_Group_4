@@ -16,8 +16,8 @@ Error TemperatureSensor::measure() {
     for (int i = 0; i < SampleSize; i++)  // take the sum of multiple readings
     {
         if (Sensor.readSample()) {
-            TempSamples.addSample((int)(Sensor.getTemperature() * 100));
-            HumiditySamples.addSample((int)(Sensor.getHumidity() * 100));
+            TempSamples.addSample(Sensor.getTemperature());
+            HumiditySamples.addSample(Sensor.getHumidity());
         } else {
             errorOccured = true;
         }
@@ -31,8 +31,8 @@ Error TemperatureSensor::measure() {
     if (!HumiditySamples.isStable()) {
         return UNSTABLE_ERROR;
     }
-    temp = TempSamples.getAverage() / 100.0;
-    humidity = HumiditySamples.getAverage() / 100.0;
+    temp = TempSamples.getAverage();
+    humidity = HumiditySamples.getAverage();
     return NO_ERROR;
 }
 

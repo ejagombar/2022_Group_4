@@ -16,8 +16,8 @@ Error PressureSensor::measure() {
     for (int i = 0; i < SampleSize; i++)  // take the sum of multiple readings
     {
         Sensor.read();
-        depthSamples.addSample((int)(Sensor.depth() * 1000));
-        tempSample.addSample((int)(Sensor.temperature() * 100));
+        depthSamples.addSample(Sensor.depth());
+        tempSample.addSample(Sensor.temperature());
     }
 
     if (!depthSamples.isStable()) {
