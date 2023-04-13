@@ -10,7 +10,7 @@ Error DistanceSensor::setup() {
 }
 
 Error DistanceSensor::measure() {
-    SampleBuffer mySamples(3);
+    SampleBuffer mySamples(35);
     bool errorOccured = false;
     for (int i = 0; i < SampleSize; i++)  // take the sum of multiple readings
     {
@@ -29,7 +29,7 @@ Error DistanceSensor::measure() {
     if (!mySamples.isStable()) {
         return UNSTABLE_ERROR;
     }
-    result = mySamples.getAverage();
+    result = (int)mySamples.getAverage();
     return NO_ERROR;
 }
 

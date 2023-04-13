@@ -14,7 +14,7 @@ void SampleBuffer::addSample(float sample) {
 }
 
 void SampleBuffer::calcAverage() {
-    int sum = 0;
+    float sum = 0;
     for (int i = 0; i < sampleCount; i++) {
         sum += samples[i];
     }

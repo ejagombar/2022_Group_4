@@ -12,16 +12,16 @@ class PressureSensor {
    private:
     MS5837 Sensor;
     const int SampleSize = 5;
-    int depth;
-    int temperature;
+    float depth;
+    float temperature;
 
    public:
     PressureSensor(){};
     ~PressureSensor(){};
     Error setup();
     Error measure();
-    int getDepth();
-    int getTemperature();
+    float getDepth();
+    float getTemperature();
 };
 
 #endif // PRESSURESENSOR_H

@@ -10,8 +10,8 @@ Error PressureSensor::setup() {
 }
 
 Error PressureSensor::measure() {
-    SampleBuffer depthSamples(50);
-    SampleBuffer tempSample(50);
+    SampleBuffer depthSamples(5.0);
+    SampleBuffer tempSample(5.0);
     bool errorOccured = false;
     for (int i = 0; i < SampleSize; i++)  // take the sum of multiple readings
     {
@@ -33,10 +33,10 @@ Error PressureSensor::measure() {
     return NO_ERROR;
 }
 
-int PressureSensor::getDepth() {
+float PressureSensor::getDepth() {
     return depth;
 }
 
-int PressureSensor::getTemperature() {
+float PressureSensor::getTemperature() {
     return temperature;
 }
