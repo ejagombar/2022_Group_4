@@ -49,6 +49,29 @@ void SDInterface::DeleteFiles() {
     SD.remove(errorlogFilename);
 }
 
+Error SDInterface::SetUp(uint8_t idIn, String setupTime) {
+    CurrentFile = SD.open(metadataFilename, FILE_WRITE);
+    if (CurrentFile) {
+        CurrentFile.println(idIn);
+        CurrentFile.println("Setup time: " + setupTime);
+        CurrentFile.close();
+        return NO_ERROR;
+    } else {
+        return FATAL_ERROR;
+    }
+}
+
+uint8_t SDInterface::getID() {
+    CurrentFile = SD.open(metadataFilename, FILE_READ);
+    if (CurrentFile) {
+        uint8_t id = CurrentFile.parseInt();
+        CurrentFile.close();
+        return id;
+    } else {
+        return 0;
+    }
+}    
+
 void StructToArr(measurement measurementIn, uint8_t* arrOut) {
     uint32_t tmp = measurementIn.time / 60;
 

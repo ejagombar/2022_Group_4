@@ -39,12 +39,13 @@ class SDInterface {
     File CurrentFile;
     String datalogFilename = "/logdata.bin";
     String errorlogFilename = "/errorlog.txt";
+    String metadataFilename = "/metadata.txt";
 
    public:
     SDInterface(){};
     ~SDInterface(){};
     Error Init();
-    Error setID(uint8_t idIn);
+    Error SetUp(uint8_t idIn, String setupTime);
     uint8_t getID();
     Error saveMeasurement(int index, const uint8_t* arrIn);
     Error getMeasurements(int index, uint8_t* arrOut, int sampleCount);
