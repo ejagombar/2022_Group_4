@@ -25,7 +25,7 @@ enum MessageType
 
 struct struct_message
 {
-    const uint8_t msgType = PairMessage;
+    const uint8_t msgType = DataMessage;
     uint8_t id;
     uint8_t height;
     uint8_t temp;
