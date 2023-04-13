@@ -5,15 +5,11 @@
 #include <Wire.h>
 
 #include "distanceSensor.h"
+#include "espNowClient.h"
 #include "pressureSensor.h"
 #include "sampleBuffer.h"
 #include "saved.h"
 #include "temperatureSensor.h"
-
-DistanceSensor distanceSensor;
-TemperatureSensor tempSensor;
-PressureSensor pressureSensor;
-SDInterface sd;
 
 #define PressureLidarVcc1 D11
 #define PressureLidarVcc2 D12
@@ -23,11 +19,20 @@ SDInterface sd;
 #define SECONDS_FROM_1970_TO_2023 1672531200
 
 #define INTERRUPT_PIN D13
-RTC_PCF8523 Rtc;
 
+DistanceSensor distanceSensor;
+TemperatureSensor tempSensor;
+PressureSensor pressureSensor;
+SDInterface sd;
+ESPNowClient espNow;
 DateTime currentTime;
 
+RTC_PCF8523 Rtc;
+
 volatile bool alarm_triggered = false;
+uint8_t deviceID = 0;
+
+char time_format_buf[] = "YYYY-MM-DDThh:mm:00";
 
 void alarmISR() {
     alarm_triggered = true;
@@ -48,6 +53,37 @@ void setAlarmInterval(uint8_t interval) {
 
     char alarm_time_buf[] = "YYYY-MM-DDThh:mm:00";
     Serial.println(String("Alarm Time: ") + alarm_time.toString(alarm_time_buf));
+}
+
+Error setupSensors(DateTime currentTime) {
+    Error err;
+    String errorMsg;
+    Error errOccured = NO_ERROR;
+
+    err = distanceSensor.setup();
+    if (err != NO_ERROR) {
+        errOccured = FATAL_ERROR;
+        errorMsg = currentTime.toString(time_format_buf) + String(": Distance sensor setup error: ") + String(err);
+        sd.logError(errorMsg);
+        Serial.println(errorMsg);
+    };
+
+    err = tempSensor.setup();
+    if (err != NO_ERROR) {
+        errOccured = FATAL_ERROR;
+        errorMsg = currentTime.toString(time_format_buf) + String(": Temperature sensor setup error: ") + String(err);
+        sd.logError(errorMsg);
+        Serial.println(errorMsg);
+    };
+
+    err = pressureSensor.setup();
+    if (err != NO_ERROR) {
+        errOccured = FATAL_ERROR;
+        errorMsg = currentTime.toString(time_format_buf) + String(": Pressure sensor setup error: ") + String(err);
+        sd.logError(errorMsg);
+        Serial.println(errorMsg);
+    };
+    return errOccured;
 }
 
 measurement takeSample(DateTime currentTime) {
@@ -94,6 +130,28 @@ measurement takeSample(DateTime currentTime) {
     return sample;
 }
 
+uint8_t setupDevice() {
+    espNow.enableDeviceSetupCallback();
+    unsigned long currentMillis = millis();
+    unsigned long previousMillis = 0;
+    const long interval = 500;  // Higher value = slower pairing but less battery drain and vice versa
+    uint8_t id = 0;
+    while (id == 0) {
+        id = espNow.processPairingandGetID();
+
+        currentMillis = millis();
+        if (currentMillis - previousMillis >= interval) {
+            previousMillis = currentMillis;
+            espNow.sendPairRequest();
+        }
+    }
+
+    sd.SetUp(id, Rtc.now().toString(time_format_buf));
+
+    Serial.println("Paired!  Device ID: " + String(id));
+    return id;
+}
+
 void setup() {
     // put your setup code here, to run once:
     Serial.begin(115200);
@@ -116,41 +174,26 @@ void setup() {
         return;
     }
 
-    //Rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+    // Rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
 
     sd.Init();
     sd.DeleteFiles();
+    espNow.init();
+
+    currentTime = Rtc.now();
+
+    deviceID = sd.getID();
+    if (deviceID == 0) {
+        deviceID = setupDevice();
+        Error err = setupSensors(currentTime);
+        espNow.sendStatusMessage(err, deviceID);
+    } else {
+        setupSensors(currentTime);
+    }
 
     esp_sleep_enable_ext0_wakeup(GPIO_NUM_12, 0);
     setAlarmInterval(1);  // to wake the esp
 
-    Error err;
-    String errorMsg;
-    currentTime = Rtc.now();
-    char time_format_buf[] = "YYYY-MM-DDThh:mm:00";
-
-    //=Setup Sensors================================================================================================
-
-    err = distanceSensor.setup();
-    if (err != NO_ERROR) {
-        errorMsg = currentTime.toString(time_format_buf) + String(": Distance sensor setup error: ") + String(err);
-        sd.logError(errorMsg);
-        Serial.println(errorMsg);
-    };
-
-    err = tempSensor.setup();
-    if (err != NO_ERROR) {
-        errorMsg = currentTime.toString(time_format_buf) + String(": Temperature sensor setup error: ") + String(err);
-        sd.logError(errorMsg);
-        Serial.println(errorMsg);
-    };
-
-    err = pressureSensor.setup();
-    if (err != NO_ERROR) {
-        errorMsg = currentTime.toString(time_format_buf) + String(": Pressure sensor setup error: ") + String(err);
-        sd.logError(errorMsg);
-        Serial.println(errorMsg);
-    };
     // digitalWrite(SDVcc, LOW);
     // esp_deep_sleep_start();
 }
@@ -159,7 +202,7 @@ uint8_t buf[13] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 int i = 0;
 void loop() {
     measurement measure = takeSample(currentTime);
-
+    //espNow.sendStatusMessage(0, deviceID);
     StructToArr(measure, buf);
 
     sd.saveMeasurement(i, buf);
@@ -173,7 +216,7 @@ void loop() {
     measurement out = ArrToStruct(buf2);
 
     Serial.print("timeOut: ");
-    DateTime timeOut(out.time+SECONDS_FROM_1970_TO_2023);
+    DateTime timeOut(out.time + SECONDS_FROM_1970_TO_2023);
     char time_format_buf[] = "YYYY-MM-DD hh:mm:00";
     Serial.println(timeOut.toString(time_format_buf));
     Serial.print("peatHeight: ");

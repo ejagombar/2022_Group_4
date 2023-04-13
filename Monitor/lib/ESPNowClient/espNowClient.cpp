@@ -4,6 +4,8 @@ struct_pairing pairingData;
 struct_message myData;  // data to send
 PairingState pairingState;
 
+uint8_t serverAddress[6] = {0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
+
 void printMAC(const uint8_t *mac_addr) {
     char macStr[18];
     snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x",
@@ -74,4 +76,12 @@ Error ESPNowClient::init() {
     }
 
     return NO_ERROR;
+}
+
+//Unfinished function. The sensor status is not actaully sent. just a confirmation is sent
+void ESPNowClient::sendStatusMessage(Error sensorStatus, uint8_t id) {
+    struct_pairing pairedData;
+    pairedData.id = 2;
+
+    esp_now_send(serverAddress, (uint8_t *)&pairedData, sizeof(pairedData));
 }

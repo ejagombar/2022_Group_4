@@ -47,6 +47,7 @@ Error SDInterface::logError(String messageIn) {
 void SDInterface::DeleteFiles() {
     SD.remove(datalogFilename);
     SD.remove(errorlogFilename);
+    SD.remove(metadataFilename);
 }
 
 Error SDInterface::SetUp(uint8_t idIn, String setupTime) {
