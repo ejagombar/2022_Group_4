@@ -18,7 +18,7 @@ void SDInterface::Init() {
         CurrentFile.write(0);
         deviceCount = 0;
     } else {
-        CurrentFile = SD.open(deviceFileName, FILE_WRITE);
+        CurrentFile = SD.open(deviceFileName, FILE_READ);
         CurrentFile.seek(0);
         CurrentFile.read(&deviceCount, sizeof(deviceCount));
     }
@@ -38,7 +38,7 @@ void SDInterface::AddDevice(SavedDevice deviceIn) {
 
         deviceCount++;
         CurrentFile.seek(0);
-        CurrentFile.write(deviceCount);
+        CurrentFile.write(&deviceCount,sizeof(deviceCount));
         CurrentFile.close();
     }
 }
