@@ -141,7 +141,7 @@ void loop() {
     processButton(btn1);
     processButton(btn2);
     if (programState == setUpState && deviceSetupState == Scan) {
-        if (espNow.ProccessPairingMessage() == PairConfirmed) {
+        if (espNow.ProccessPairingMessage() == Complete) {
             deviceSetupState = DisplayNumber;
             espNow.disableCallback();
             deviceSetup.displayIDNum(espNow.getMaxId());
