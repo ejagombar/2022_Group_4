@@ -150,9 +150,13 @@ void setup() {
     unsigned long previousMillis = 0;
 
     espNow.init();
-    for (int i = 0; i < sdInterface.GetDeviceCount(); i++) {
+    uint8_t count = sdInterface.GetDeviceCount();
+    espNow.setDeviceCount(count);
+    for (int i = 0; i < count; i++) {
         SavedDevice temp = sdInterface.GetDevice(i);
         espNow.addDevice(temp.macAddr);
+        Serial.println("Added Device: ");
+        printMAC(temp.macAddr);
     }
 }
 
@@ -164,8 +168,8 @@ void loop() {
         if (espNow.ProccessPairingMessage() == Complete) {
             commsState = CommsComplete;
             espNow.disableCallback();
-            deviceSetup.displayIDNum(espNow.getMaxId());
-            SavedDevice temp = {espNow.getMaxId()};
+            deviceSetup.displayIDNum(espNow.getDeviceCount());
+            SavedDevice temp = {espNow.getDeviceCount()};
             memcpy(temp.macAddr, espNow.getCurrentMAC(), 6);
             sdInterface.AddDevice(temp);
         }
@@ -176,7 +180,7 @@ void loop() {
             previousMillis = currentMillis;
             struct_RequestMessage request = {};
             request.requestData = true;
-            request.enableBuzzer = true;
+            request.enableBuzzer = false;
             espNow.broadcastRequest(request);
             Serial.println("Broadcasting Request");
         }
