@@ -51,8 +51,10 @@ class ESPNowClient {
     ESPNowClient(){};
     Error init();
     void sendPairRequest();
+    void sendDataPacket(uint8_t *packet);
     int processPairingandGetID();
     void enableDeviceSetupCallback();
+    void enableRemoteBroadcastListener();
     void disableCallback();
     void sendStatusMessage(Error sensorStatus, uint8_t id);
 };

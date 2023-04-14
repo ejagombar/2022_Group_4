@@ -27,6 +27,12 @@ void SetUpOnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int l
         pairingState = ProcessNewRequest;
     }
 }
+void RemoteBroadcastListener(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {
+    if ((incomingData[0] == PairMessage) && (memcmp(mac_addr, serverAddress, 6) == 0)) {
+        memcpy(&pairingData, incomingData, sizeof(pairingData));
+        pairingState = ProcessNewRequest;
+    }
+}
 
 //=================================================================================================
 
@@ -35,6 +41,11 @@ void ESPNowClient::sendPairRequest() {
 
     esp_now_send(serverAddress, (uint8_t *)&pairingData, sizeof(pairingData));
     Serial.println("Attempting to send pairing message");
+}
+
+void ESPNowClient::sendDataPacket(uint8_t *packet) {
+    esp_now_send(serverAddress, (uint8_t *)&packet, sizeof(packet));
+    Serial.println("Attempting to send data message");
 }
 
 int ESPNowClient::processPairingandGetID() {
@@ -78,7 +89,11 @@ Error ESPNowClient::init() {
     return NO_ERROR;
 }
 
-//Unfinished function. The sensor status is not actaully sent. just a confirmation is sent
+void ESPNowClient::enableRemoteBroadcastListener() {
+    esp_now_register_recv_cb(RemoteBroadcastListener);
+}
+
+// Unfinished function. The sensor status is not actaully sent. just a confirmation is sent
 void ESPNowClient::sendStatusMessage(Error sensorStatus, uint8_t id) {
     struct_pairing pairedData;
     pairedData.id = 2;
