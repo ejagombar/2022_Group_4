@@ -152,6 +152,36 @@ uint8_t setupDevice() {
     return id;
 }
 
+bool transmit() {
+    uint16_t startlocation = deviceMetadata.transmittedNum;
+    uint16_t sampleCount = deviceMetadata.sampleNum - startlocation;
+    Serial.println("Start location: " + String(startlocation));
+
+    if (sampleCount > 19) {
+        sampleCount = 19;
+    }
+    Serial.println("Sample count: " + String(sampleCount));
+    if (sampleCount == 0) {
+        return false;
+    }
+    uint8_t packet[250] = {0};
+    packet[0] = 1;  // data packet
+    packet[1] = deviceMetadata.ID;
+    packet[2] = sampleCount;
+    if (sd.getMeasurements(startlocation, &packet[3], sampleCount) == FATAL_ERROR) {
+        Serial.println("Fatal error occured");
+    }
+    deviceMetadata.transmittedNum += sampleCount;
+    sd.setMetadata(deviceMetadata);
+
+    espNow.sendDataPacket(packet);
+    for (int i = 0; i < 250; i++) {
+        Serial.print(packet[i], HEX);
+        Serial.print(" ");
+    }
+    return true;
+}
+
 void setup() {
     // put your setup code here, to run once:
     Serial.begin(115200);
@@ -181,7 +211,7 @@ void setup() {
     espNow.init();
 
     currentTime = Rtc.now();
-
+    deviceMetadata = sd.getMetadata();
 
     if (deviceMetadata.ID == 0) {
         deviceMetadata.ID = setupDevice();
@@ -191,36 +221,6 @@ void setup() {
         setupSensors(currentTime);
     }
 
-    deviceMetadata = sd.getMetadata();
-    Serial.print("\nDevice ID: ");
-    Serial.println(deviceMetadata.ID);
-    Serial.print("Device SampleNum: ");
-    Serial.println(deviceMetadata.sampleNum);
-    Serial.print("Transmitted Num: ");
-    Serial.println(deviceMetadata.transmittedNum);
-
-    deviceMetadata.sampleNum = deviceMetadata.sampleNum + 3;
-    sd.setMetadata(deviceMetadata);
-    deviceMetadata = sd.getMetadata();
-    Serial.println("\nIncremented smaple num by 3");
-    Serial.print("Device ID: ");
-    Serial.println(deviceMetadata.ID);
-    Serial.print("Device SampleNum: ");
-    Serial.println(deviceMetadata.sampleNum);
-    Serial.print("Transmitted Num: ");
-    Serial.println(deviceMetadata.transmittedNum);
-
-    deviceMetadata.transmittedNum = deviceMetadata.transmittedNum + 7;
-    sd.setMetadata(deviceMetadata);
-    deviceMetadata = sd.getMetadata();
-    Serial.println("\nIncremented TransmittedNum by 7");
-    Serial.print("Device ID: ");
-    Serial.println(deviceMetadata.ID);
-    Serial.print("Device SampleNum: ");
-    Serial.println(deviceMetadata.sampleNum);
-    Serial.print("Transmitted Num: ");
-    Serial.println(deviceMetadata.transmittedNum);
-
     esp_sleep_enable_ext0_wakeup(GPIO_NUM_12, 0);
     setAlarmInterval(1);  // to wake the esp
 
@@ -228,37 +228,65 @@ void setup() {
     // esp_deep_sleep_start();
 }
 
-uint8_t buf[13] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-int i = 0;
 void loop() {
-    measurement measure = takeSample(currentTime);
-    // espNow.sendStatusMessage(0, deviceID);
-    StructToArr(measure, buf);
+    for (int i = 0; i < 10; i++) {
+        deviceMetadata = sd.getMetadata();
+        uint8_t buf[13] = {0};
+        measurement measure = takeSample(currentTime);
 
-    sd.saveMeasurement(i, buf);
+        Serial.print("\n\nTime: ");
+        DateTime timeOut(measure.time + SECONDS_FROM_1970_TO_2023);
+        char time_format_buf[] = "YYYY-MM-DD hh:mm:00";
+        Serial.println(timeOut.toString(time_format_buf));
+        Serial.print("peatHeight: ");
+        Serial.println(measure.peatHeight);
+        Serial.print("waterHeight: ");
+        Serial.println(measure.waterHeight);
+        Serial.print("boxTemp: ");
+        Serial.println(measure.boxTemp);
+        Serial.print("groundTemp: ");
+        Serial.println(measure.groundTemp);
+        Serial.print("humidity: ");
+        Serial.println(measure.humidity);
+        Serial.println("-----\n");
 
-    uint8_t buf2[13] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        StructToArr(measure, buf);
+        sd.saveMeasurement(deviceMetadata.sampleNum, buf);
 
-    if (sd.getMeasurements(i, buf2, 1) == FATAL_ERROR) {
-        Serial.println("Fatal error occured");
+        Serial.println("Saved measurement:");
+        for (int i = 0; i < 13; i++) {
+            Serial.print(buf[i], HEX);
+            Serial.print(" ");
+        }
+        Serial.println();
+
+        uint8_t buf2[13] = {0};
+
+        if (sd.getMeasurements((int)deviceMetadata.sampleNum, buf2, 1) == FATAL_ERROR) {
+            Serial.println("Fatal error occured");
+        }
+        measurement out = ArrToStruct(buf2);
+
+        deviceMetadata.sampleNum++;
+        sd.setMetadata(deviceMetadata);
+
+        Serial.print("timeOut: ");
+        DateTime timeOut2(out.time + SECONDS_FROM_1970_TO_2023);
+        // time_format_buf[] = "YYYY-MM-DD hh:mm:00";
+        Serial.println(timeOut2.toString(time_format_buf));
+        Serial.print("peatHeight: ");
+        Serial.println(out.peatHeight);
+        Serial.print("waterHeight: ");
+        Serial.println(out.waterHeight);
+        Serial.print("boxTemp: ");
+        Serial.println(out.boxTemp);
+        Serial.print("groundTemp: ");
+        Serial.println(out.groundTemp);
+        Serial.print("humidity: ");
+        Serial.println(out.humidity);
+
+        delay(100);
     }
-    i++;
-    measurement out = ArrToStruct(buf2);
-
-    Serial.print("timeOut: ");
-    DateTime timeOut(out.time + SECONDS_FROM_1970_TO_2023);
-    char time_format_buf[] = "YYYY-MM-DD hh:mm:00";
-    Serial.println(timeOut.toString(time_format_buf));
-    Serial.print("peatHeight: ");
-    Serial.println(out.peatHeight);
-    Serial.print("waterHeight: ");
-    Serial.println(out.waterHeight);
-    Serial.print("boxTemp: ");
-    Serial.println(out.boxTemp);
-    Serial.print("groundTemp: ");
-    Serial.println(out.groundTemp);
-    Serial.print("humidity: ");
-    Serial.println(out.humidity);
-
-    delay(5000);
+    transmit();
+    delay(10000);
 }
