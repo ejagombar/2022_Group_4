@@ -37,26 +37,14 @@ void btn0PressedFunc() {
             mainMenu.btnUpPressed();
             break;
         case setUpState:
-            if (commsState == WaitForUserInput) {
-                deviceSetup.btnStartScanPressed();
-                commsState = SendReceive;
-                espNow.init();
-                espNow.enableDeviceSetupCallback();
-
-            } else if (commsState == CommsComplete) {
+            if ((commsState == WaitForUserInput) || (commsState == CommsComplete)) {
                 deviceSetup.btnStartScanPressed();
                 commsState = SendReceive;
                 espNow.enableDeviceSetupCallback();
             }
             break;
         case broadcastState:
-            if (commsState == WaitForUserInput) {
-                deviceBroadcast.btnStartBroadcastPressed();
-                commsState = SendReceive;
-                espNow.init();
-                espNow.enableDeviceScanCallback();
-
-            } else if (commsState == CommsComplete) {
+            if ((commsState == WaitForUserInput) || (commsState == CommsComplete)) {
                 deviceBroadcast.btnStartBroadcastPressed();
                 commsState = SendReceive;
                 espNow.enableDeviceScanCallback();
@@ -100,10 +88,12 @@ void btn2PressedFunc() {
             if (programState == setUpState) {
                 commsState = WaitForUserInput;
                 deviceSetup.InitScreen();
+                espNow.init();
             }
             if (programState == broadcastState) {
                 commsState = WaitForUserInput;
                 deviceBroadcast.InitScreen();
+                espNow.init();
             }
             if (programState == helpState) {
                 helpPage.InitScreen();

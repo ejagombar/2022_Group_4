@@ -161,7 +161,7 @@ void DeviceScan::InitScreen() {
     screen.setCursor(38, YMIN + 25);
     screen.print("Scan Devices");
 
-    const String menuItems[3] = {"Start", "Stop", "Back"};
+    const String menuItems[3] = {"Start", "", "Back"};
     printMenuBar(menuItems);
     screen.setCursor(5, YMIN + 60 + 30);
 }
