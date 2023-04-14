@@ -7,8 +7,6 @@ uint8_t currentMAC[6];
 uint8_t storedMAC[6];
 bool storedMACSet;
 
-uint8_t maxId = 0;
-
 void printMAC(const uint8_t *mac_addr) {
     char macStr[18];
     snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x",
@@ -134,15 +132,15 @@ MessageState ESPNowInterface::ProccessPairingMessage() {
                     Serial.println("Failed to add peer");
                 }
 
-                maxId++;
-                pairMsg.id = maxId;
+                deviceCount++;
+                pairMsg.id = deviceCount;
                 memcpy(storedMAC, &currentMAC, 6);
                 storedMACSet = true;
 
                 esp_now_send(currentMAC, (uint8_t *)&pairMsg, sizeof(pairMsg));
                 messageState = WaitingForMessage;
             } else if (identicalMAC) {
-                pairMsg.id = maxId;
+                pairMsg.id = deviceCount;
                 esp_now_send(currentMAC, (uint8_t *)&pairMsg, sizeof(pairMsg));
                 messageState = WaitingForMessage;
             } else {
@@ -160,8 +158,12 @@ MessageState ESPNowInterface::ProccessPairingMessage() {
     return messageState;
 }
 
-uint8_t ESPNowInterface::getMaxId() {
-    return maxId;
+uint8_t ESPNowInterface::getDeviceCount() {
+    return deviceCount;
+}
+
+void ESPNowInterface::setDeviceCount(uint8_t count) {
+    deviceCount = count;
 }
 
 uint8_t *ESPNowInterface::getCurrentMAC() {

@@ -47,6 +47,8 @@ struct struct_RequestMessage {
 
 const uint8_t MACAddress[] = {0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
 
+void printMAC(const uint8_t *mac_addr);
+
 // This is an interface class used to invoke various ESPNow functions.
 class ESPNowInterface {
    private:
@@ -67,7 +69,8 @@ class ESPNowInterface {
     uint8_t* getDataFrame();
     void broadcastRequest(struct_RequestMessage request);
     friend bool addPeer(const uint8_t* peer_addr);
-    uint8_t getMaxId();
+    uint8_t getDeviceCount();
+    void setDeviceCount(uint8_t count);
     uint8_t* getCurrentMAC();
 };
 
