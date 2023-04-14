@@ -27,9 +27,11 @@ enum MainState {
     helpState,
 };
 
-enum DeviceSetupState { WaitForUserInput,
-                        Scan,
-                        DisplayNumber };
+enum DeviceSetupState {
+    WaitForUserInput,
+    Scan,
+    DisplayNumber,
+};
 
 //--------------------------------------------------------------------------------------------//
 
@@ -57,8 +59,6 @@ class MainMenu {
 class DeviceSetup {
    private:
     DeviceSetupState devicesetupState;
-    void SelectItem(uint8_t index);
-    void UnselectItem(uint8_t index);
 
    public:
     void btnStartScanPressed();
@@ -73,9 +73,8 @@ class DeviceSetup {
 
 class DeviceScan {
    public:
-    void btnUpPressed();
-    void btnDownPressed();
-    void btnEnterPressed();
+    void btnCancelPressed();
+    void btnStartScanPressed();
     void InitScreen();
     ~DeviceScan(){};
     DeviceScan(){};

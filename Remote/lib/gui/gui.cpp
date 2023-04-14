@@ -166,15 +166,14 @@ void DeviceScan::InitScreen() {
     screen.setCursor(5, YMIN + 60 + 30);
 }
 
-void DeviceScan::btnDownPressed() {
-    screen.println("Scanning...");
+void DeviceScan::btnStartScanPressed() {
+    screen.fillRect(40, 60, XMAX - 80, 120, COLOR_RGB565_BLACK);
+    const String menuItems[3] = {"", "Cancel", "Back"};
+    printMenuBar(menuItems);
 }
 
-void DeviceScan::btnUpPressed() {
-    screen.print("Stopping Scanning");
-}
-
-void DeviceScan::btnEnterPressed() {
+void DeviceScan::btnCancelPressed() {
+    InitScreen();
 }
 
 //--------------------------------------------------------------------------------------------//
