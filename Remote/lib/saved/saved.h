@@ -19,15 +19,15 @@ enum OpenFile {
 class SDInterface {
    private:
     uint8_t deviceCount = 0;
-    OpenFile openFile = NoneOpen;
+    String deviceFileName = "/DeviceFile.bin";
+
    public:
     SDInterface(){};
     ~SDInterface(){};
     void AddDevice(SavedDevice deviceIn);
     SavedDevice GetDevice(uint8_t index);
     void Init();
-    void closeFiles();
-    void ClearDevices();
+    void DeleteFiles();
     uint8_t GetDeviceCount();
 };
 

@@ -37,26 +37,14 @@ void btn0PressedFunc() {
             mainMenu.btnUpPressed();
             break;
         case setUpState:
-            if (commsState == WaitForUserInput) {
-                deviceSetup.btnStartScanPressed();
-                commsState = SendReceive;
-                espNow.init();
-                espNow.enableDeviceSetupCallback();
-
-            } else if (commsState == CommsComplete) {
+            if ((commsState == WaitForUserInput) || (commsState == CommsComplete)) {
                 deviceSetup.btnStartScanPressed();
                 commsState = SendReceive;
                 espNow.enableDeviceSetupCallback();
             }
             break;
         case broadcastState:
-            if (commsState == WaitForUserInput) {
-                deviceBroadcast.btnStartBroadcastPressed();
-                commsState = SendReceive;
-                espNow.init();
-                espNow.enableDeviceScanCallback();
-
-            } else if (commsState == CommsComplete) {
+            if ((commsState == WaitForUserInput) || (commsState == CommsComplete)) {
                 deviceBroadcast.btnStartBroadcastPressed();
                 commsState = SendReceive;
                 espNow.enableDeviceScanCallback();
@@ -100,10 +88,12 @@ void btn2PressedFunc() {
             if (programState == setUpState) {
                 commsState = WaitForUserInput;
                 deviceSetup.InitScreen();
+                // espNow.init();
             }
             if (programState == broadcastState) {
                 commsState = WaitForUserInput;
                 deviceBroadcast.InitScreen();
+                // espNow.init();
             }
             if (programState == helpState) {
                 helpPage.InitScreen();
@@ -116,7 +106,7 @@ void btn2PressedFunc() {
         case setUpState:
 
             espNow.disableCallback();
-            espNow.deinit();
+            // espNow.deinit();
             programState = mainMenuState;
             mainMenu.InitScreen();
 
@@ -125,7 +115,7 @@ void btn2PressedFunc() {
         case broadcastState:
 
             espNow.disableCallback();
-            espNow.deinit();
+            // espNow.deinit();
             programState = mainMenuState;
             mainMenu.InitScreen();
 
@@ -158,6 +148,16 @@ void setup() {
 
     unsigned long currentMillis = millis();
     unsigned long previousMillis = 0;
+
+    espNow.init();
+    uint8_t count = sdInterface.GetDeviceCount();
+    espNow.setDeviceCount(count);
+    for (int i = 0; i < count; i++) {
+        SavedDevice temp = sdInterface.GetDevice(i);
+        espNow.addDevice(temp.macAddr);
+        Serial.println("Added Device: ");
+        printMAC(temp.macAddr);
+    }
 }
 
 void loop() {
@@ -165,11 +165,11 @@ void loop() {
     processButton(btn1);
     processButton(btn2);
     if (programState == setUpState && commsState == SendReceive) {
-        if (espNow.ProccessPairingMessage() == CommsComplete) {
+        if (espNow.ProccessPairingMessage() == Complete) {
             commsState = CommsComplete;
             espNow.disableCallback();
-            deviceSetup.displayIDNum(espNow.getMaxId());
-            SavedDevice temp = {espNow.getMaxId()};
+            deviceSetup.displayIDNum(espNow.getDeviceCount());
+            SavedDevice temp = {espNow.getDeviceCount()};
             memcpy(temp.macAddr, espNow.getCurrentMAC(), 6);
             sdInterface.AddDevice(temp);
         }
@@ -180,6 +180,7 @@ void loop() {
             previousMillis = currentMillis;
             struct_RequestMessage request = {};
             request.requestData = true;
+            request.enableBuzzer = false;
             espNow.broadcastRequest(request);
             Serial.println("Broadcasting Request");
         }

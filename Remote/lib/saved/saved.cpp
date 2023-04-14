@@ -1,7 +1,6 @@
 #include "saved.h"
 
-File DataFile;
-File DeviceFile;
+File CurrentFile;
 #define CSPIN A4
 
 char* MACtoStr(const uint8_t* mac_addr) {
@@ -13,35 +12,35 @@ char* MACtoStr(const uint8_t* mac_addr) {
 
 void SDInterface::Init() {
     SD.begin(CSPIN);
+    if (!SD.exists(deviceFileName)) {
+        CurrentFile = SD.open(deviceFileName, FILE_WRITE);
+        CurrentFile.seek(0);
+        CurrentFile.write(0);
+        deviceCount = 0;
+    } else {
+        CurrentFile = SD.open(deviceFileName, FILE_READ);
+        CurrentFile.seek(0);
+        CurrentFile.read(&deviceCount, sizeof(deviceCount));
+    }
+    CurrentFile.close();
 }
 
-void SDInterface::closeFiles() {
-    if (openFile == DataFileOpen) {
-        DataFile.close();
-    }
-    if (openFile == DeviceFileOpen) {
-        DeviceFile.close();
-    }
-    openFile = NoneOpen;
-}    
+void SDInterface::DeleteFiles() {
+    SD.remove(deviceFileName);
+    deviceCount = 0;
+}
 
 void SDInterface::AddDevice(SavedDevice deviceIn) {
-    if (openFile == DataFileOpen) {
-        DataFile.close();
-        openFile = NoneOpen;
+    CurrentFile = SD.open(deviceFileName, FILE_WRITE);
+    if (CurrentFile) {
+        CurrentFile.seek(1 + (sizeof(deviceIn) * deviceCount));
+        CurrentFile.write((uint8_t*)&deviceIn, sizeof(deviceIn));
+
+        deviceCount++;
+        CurrentFile.seek(0);
+        CurrentFile.write(&deviceCount,sizeof(deviceCount));
+        CurrentFile.close();
     }
-    if (openFile == NoneOpen) {
-        DeviceFile = SD.open("/DeviceFile.txt", FILE_APPEND);
-    }
-    if (DeviceFile) {
-        Serial.println("file available");
-    }
-    DeviceFile.print(deviceIn.id);
-    DeviceFile.print(",");
-    DeviceFile.println(MACtoStr(deviceIn.macAddr));
-    DeviceFile.close();
-    openFile = NoneOpen;
-    // savedDeviceArr[deviceCount] = deviceIn;
 }
 
 uint8_t SDInterface::GetDeviceCount() {
@@ -49,5 +48,12 @@ uint8_t SDInterface::GetDeviceCount() {
 }
 
 SavedDevice SDInterface::GetDevice(uint8_t index) {
-    // return savedDeviceArr[index];
+    SavedDevice deviceOut = {};
+    CurrentFile = SD.open(deviceFileName, FILE_READ);
+    if (CurrentFile) {
+        CurrentFile.seek(1 + (sizeof(SavedDevice) * index));
+        CurrentFile.read((uint8_t*)&deviceOut, sizeof(deviceOut));
+        CurrentFile.close();
+    }
+    return deviceOut;
 }
