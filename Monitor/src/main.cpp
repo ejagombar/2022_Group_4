@@ -30,7 +30,7 @@ DateTime currentTime;
 RTC_PCF8523 Rtc;
 
 volatile bool alarm_triggered = false;
-uint8_t deviceID = 0;
+metadata deviceMetadata = {};
 
 char time_format_buf[] = "YYYY-MM-DDThh:mm:00";
 
@@ -146,7 +146,7 @@ uint8_t setupDevice() {
         }
     }
 
-    sd.SetUp(id, Rtc.now().toString(time_format_buf));
+    sd.SetUp(id);
 
     Serial.println("Paired!  Device ID: " + String(id));
     return id;
@@ -182,14 +182,44 @@ void setup() {
 
     currentTime = Rtc.now();
 
-    deviceID = sd.getID();
-    if (deviceID == 0) {
-        deviceID = setupDevice();
+
+    if (deviceMetadata.ID == 0) {
+        deviceMetadata.ID = setupDevice();
         Error err = setupSensors(currentTime);
-        espNow.sendStatusMessage(err, deviceID);
+        espNow.sendStatusMessage(err, deviceMetadata.ID);
     } else {
         setupSensors(currentTime);
     }
+
+    deviceMetadata = sd.getMetadata();
+    Serial.print("\nDevice ID: ");
+    Serial.println(deviceMetadata.ID);
+    Serial.print("Device SampleNum: ");
+    Serial.println(deviceMetadata.sampleNum);
+    Serial.print("Transmitted Num: ");
+    Serial.println(deviceMetadata.transmittedNum);
+
+    deviceMetadata.sampleNum = deviceMetadata.sampleNum + 3;
+    sd.setMetadata(deviceMetadata);
+    deviceMetadata = sd.getMetadata();
+    Serial.println("\nIncremented smaple num by 3");
+    Serial.print("Device ID: ");
+    Serial.println(deviceMetadata.ID);
+    Serial.print("Device SampleNum: ");
+    Serial.println(deviceMetadata.sampleNum);
+    Serial.print("Transmitted Num: ");
+    Serial.println(deviceMetadata.transmittedNum);
+
+    deviceMetadata.transmittedNum = deviceMetadata.transmittedNum + 7;
+    sd.setMetadata(deviceMetadata);
+    deviceMetadata = sd.getMetadata();
+    Serial.println("\nIncremented TransmittedNum by 7");
+    Serial.print("Device ID: ");
+    Serial.println(deviceMetadata.ID);
+    Serial.print("Device SampleNum: ");
+    Serial.println(deviceMetadata.sampleNum);
+    Serial.print("Transmitted Num: ");
+    Serial.println(deviceMetadata.transmittedNum);
 
     esp_sleep_enable_ext0_wakeup(GPIO_NUM_12, 0);
     setAlarmInterval(1);  // to wake the esp
@@ -202,7 +232,7 @@ uint8_t buf[13] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 int i = 0;
 void loop() {
     measurement measure = takeSample(currentTime);
-    //espNow.sendStatusMessage(0, deviceID);
+    // espNow.sendStatusMessage(0, deviceID);
     StructToArr(measure, buf);
 
     sd.saveMeasurement(i, buf);

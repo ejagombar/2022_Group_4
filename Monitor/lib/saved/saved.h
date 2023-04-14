@@ -16,6 +16,12 @@ struct measurement {
     uint16_t humidity;
 };
 
+struct metadata {
+    uint8_t ID;
+    uint16_t sampleNum;
+    uint16_t transmittedNum;
+};
+
 enum OpenFile {
     MonitorDataFileOpen,
     DataFileOpen,
@@ -39,14 +45,15 @@ class SDInterface {
     File CurrentFile;
     String datalogFilename = "/logdata.bin";
     String errorlogFilename = "/errorlog.txt";
-    String metadataFilename = "/metadata.txt";
+    String metadataFilename = "/metadata.bin";
 
    public:
     SDInterface(){};
     ~SDInterface(){};
     Error Init();
-    Error SetUp(uint8_t idIn, String setupTime);
-    uint8_t getID();
+    Error SetUp(uint8_t idIn);
+    metadata getMetadata();
+    Error setMetadata(metadata metadataIn);
     Error saveMeasurement(int index, const uint8_t* arrIn);
     Error getMeasurements(int index, uint8_t* arrOut, int sampleCount);
     Error logError(String messageIn);

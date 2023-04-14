@@ -50,11 +50,24 @@ void SDInterface::DeleteFiles() {
     SD.remove(metadataFilename);
 }
 
-Error SDInterface::SetUp(uint8_t idIn, String setupTime) {
+Error SDInterface::SetUp(uint8_t idIn) {
+    metadata metadataIn = {idIn, 0, 0};
     CurrentFile = SD.open(metadataFilename, FILE_WRITE);
     if (CurrentFile) {
-        CurrentFile.println(idIn);
-        CurrentFile.println("Setup time: " + setupTime);
+        CurrentFile.seek(0);
+        CurrentFile.write((byte *)&metadataIn, sizeof(metadataIn));
+        CurrentFile.close();
+        return NO_ERROR;
+    } else {
+        return FATAL_ERROR;
+    } 
+}
+
+Error SDInterface::setMetadata(metadata metadataIn) {
+    CurrentFile = SD.open(metadataFilename, FILE_WRITE);
+    if (CurrentFile) {
+        CurrentFile.seek(0);
+        CurrentFile.write((byte *)&metadataIn, sizeof(metadataIn));
         CurrentFile.close();
         return NO_ERROR;
     } else {
@@ -62,16 +75,16 @@ Error SDInterface::SetUp(uint8_t idIn, String setupTime) {
     }
 }
 
-uint8_t SDInterface::getID() {
+metadata SDInterface::getMetadata() {
+    metadata metadataOut = {};
     CurrentFile = SD.open(metadataFilename, FILE_READ);
     if (CurrentFile) {
-        uint8_t id = CurrentFile.parseInt();
+        CurrentFile.seek(0);
+        CurrentFile.read((byte *)&metadataOut, sizeof(metadataOut));
         CurrentFile.close();
-        return id;
-    } else {
-        return 0;
     }
-}    
+    return metadataOut;
+}
 
 void StructToArr(measurement measurementIn, uint8_t* arrOut) {
     uint32_t tmp = measurementIn.time / 60;
