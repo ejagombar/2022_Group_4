@@ -8,14 +8,18 @@
 
 MainMenu mainMenu;
 DeviceSetup deviceSetup;
-DeviceScan deviceScan;
+DeviceScan deviceBroadcast;
 HelpPage helpPage;
 ErrorPage errorPage;
 ESPNowInterface espNow;
 SDInterface sdInterface;
 
 MainState programState = mainMenuState;
-DeviceSetupState deviceSetupState;
+CommsState commsState;
+
+unsigned long currentMillis;
+unsigned long previousMillis = 0;
+const long interval = 500;
 
 void processButton(Button &btn) {
     if ((digitalRead(btn.getPin()) == LOW) && btn.getReady()) {
@@ -33,20 +37,30 @@ void btn0PressedFunc() {
             mainMenu.btnUpPressed();
             break;
         case setUpState:
-            if (deviceSetupState == WaitForUserInput) {
+            if (commsState == WaitForUserInput) {
                 deviceSetup.btnStartScanPressed();
-                deviceSetupState = Scan;
+                commsState = SendReceive;
                 espNow.init();
                 espNow.enableDeviceSetupCallback();
 
-            } else if (deviceSetupState == DisplayNumber) {
+            } else if (commsState == CommsComplete) {
                 deviceSetup.btnStartScanPressed();
-                deviceSetupState = Scan;
+                commsState = SendReceive;
                 espNow.enableDeviceSetupCallback();
             }
             break;
-        case scanState:
-            deviceScan.btnCancelPressed();
+        case broadcastState:
+            if (commsState == WaitForUserInput) {
+                deviceBroadcast.btnStartBroadcastPressed();
+                commsState = SendReceive;
+                espNow.init();
+                espNow.enableDeviceScanCallback();
+
+            } else if (commsState == CommsComplete) {
+                deviceBroadcast.btnStartBroadcastPressed();
+                commsState = SendReceive;
+                espNow.enableDeviceScanCallback();
+            }
             break;
         case helpState:
             helpPage.btnPrevPressed();
@@ -59,14 +73,18 @@ void btn1PressedFunc() {
             mainMenu.btnDownPressed();
             break;
         case setUpState:
-            if (deviceSetupState == Scan) {
+            if (commsState == SendReceive) {
                 deviceSetup.btnCancelPressed();
-                deviceSetupState = WaitForUserInput;
+                commsState = WaitForUserInput;
                 espNow.disableCallback();
             }
             break;
-        case scanState:
-            deviceScan.btnStartScanPressed();
+        case broadcastState:
+            if (commsState == SendReceive) {
+                deviceBroadcast.btnCancelPressed();
+                commsState = WaitForUserInput;
+                espNow.disableCallback();
+            }
             break;
         case helpState:
             helpPage.btnNextPressed();
@@ -80,11 +98,12 @@ void btn2PressedFunc() {
             programState = mainMenu.btnEnterPressed();
             Serial.println(programState);
             if (programState == setUpState) {
-                deviceSetupState = WaitForUserInput;
+                commsState = WaitForUserInput;
                 deviceSetup.InitScreen();
             }
-            if (programState == scanState) {
-                deviceScan.InitScreen();
+            if (programState == broadcastState) {
+                commsState = WaitForUserInput;
+                deviceBroadcast.InitScreen();
             }
             if (programState == helpState) {
                 helpPage.InitScreen();
@@ -103,8 +122,10 @@ void btn2PressedFunc() {
 
             break;
 
-        case scanState:
+        case broadcastState:
 
+            espNow.disableCallback();
+            espNow.deinit();
             programState = mainMenuState;
             mainMenu.InitScreen();
 
@@ -134,20 +155,45 @@ void setup() {
 
     mainMenu.InitScreen();
     programState = mainMenuState;
+
+    unsigned long currentMillis = millis();
+    unsigned long previousMillis = 0;
 }
 
 void loop() {
     processButton(btn0);
     processButton(btn1);
     processButton(btn2);
-    if (programState == setUpState && deviceSetupState == Scan) {
-        if (espNow.ProccessPairingMessage() == Complete) {
-            deviceSetupState = DisplayNumber;
+    if (programState == setUpState && commsState == SendReceive) {
+        if (espNow.ProccessPairingMessage() == CommsComplete) {
+            commsState = CommsComplete;
             espNow.disableCallback();
             deviceSetup.displayIDNum(espNow.getMaxId());
             SavedDevice temp = {espNow.getMaxId()};
             memcpy(temp.macAddr, espNow.getCurrentMAC(), 6);
             sdInterface.AddDevice(temp);
+        }
+    }
+    if (programState == broadcastState && commsState == SendReceive) {
+        currentMillis = millis();
+        if (currentMillis - previousMillis >= interval) {
+            previousMillis = currentMillis;
+            struct_RequestMessage request = {};
+            request.requestData = true;
+            espNow.broadcastRequest(request);
+            Serial.println("Broadcasting Request");
+        }
+
+        if (espNow.getScanningState() == RecievedData) {
+            uint8_t dataFrame[250];
+            memcpy(&dataFrame, espNow.getDataFrame(), sizeof(dataFrame));
+
+            espNow.setScanningState(BroadcastRequest);
+
+            for (int i = 0; i < 250; i++) {
+                Serial.print(dataFrame[i], HEX);
+                Serial.print(" ");
+            }
         }
     }
 }
