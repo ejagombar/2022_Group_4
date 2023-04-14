@@ -88,12 +88,12 @@ void btn2PressedFunc() {
             if (programState == setUpState) {
                 commsState = WaitForUserInput;
                 deviceSetup.InitScreen();
-                espNow.init();
+                //espNow.init();
             }
             if (programState == broadcastState) {
                 commsState = WaitForUserInput;
                 deviceBroadcast.InitScreen();
-                espNow.init();
+                //espNow.init();
             }
             if (programState == helpState) {
                 helpPage.InitScreen();
@@ -106,7 +106,7 @@ void btn2PressedFunc() {
         case setUpState:
 
             espNow.disableCallback();
-            espNow.deinit();
+            //espNow.deinit();
             programState = mainMenuState;
             mainMenu.InitScreen();
 
@@ -115,7 +115,7 @@ void btn2PressedFunc() {
         case broadcastState:
 
             espNow.disableCallback();
-            espNow.deinit();
+            //espNow.deinit();
             programState = mainMenuState;
             mainMenu.InitScreen();
 
@@ -148,6 +148,8 @@ void setup() {
 
     unsigned long currentMillis = millis();
     unsigned long previousMillis = 0;
+
+    espNow.init();
 }
 
 void loop() {
@@ -155,7 +157,7 @@ void loop() {
     processButton(btn1);
     processButton(btn2);
     if (programState == setUpState && commsState == SendReceive) {
-        if (espNow.ProccessPairingMessage() == CommsComplete) {
+        if (espNow.ProccessPairingMessage() == Complete) {
             commsState = CommsComplete;
             espNow.disableCallback();
             deviceSetup.displayIDNum(espNow.getMaxId());
@@ -170,6 +172,7 @@ void loop() {
             previousMillis = currentMillis;
             struct_RequestMessage request = {};
             request.requestData = true;
+            request.enableBuzzer = true;
             espNow.broadcastRequest(request);
             Serial.println("Broadcasting Request");
         }
