@@ -85,6 +85,16 @@ int ESPNowInterface::deinit() {
     return Success;
 }
 
+void ESPNowInterface::addDevice(uint8_t* deviceMAC) {
+    esp_now_peer_info_t peerInfo;
+    memcpy(peerInfo.peer_addr, deviceMAC, 6);
+    peerInfo.channel = 0;
+    peerInfo.encrypt = false;
+    if (esp_now_add_peer(&peerInfo) != ESP_OK) {
+        Serial.println("Failed to add peer");
+    }
+}
+
 void ESPNowInterface::enableDeviceSetupCallback() {
     memset(currentMAC, 0, sizeof(currentMAC));
     memset(storedMAC, 0, sizeof(storedMAC));

@@ -62,6 +62,7 @@ class ESPNowInterface {
     void disableCallback();
     MessageState ProccessPairingMessage();
     ScanningState getScanningState();
+    void addDevice(uint8_t* deviceMAC);
     void setScanningState(ScanningState state);
     uint8_t* getDataFrame();
     void broadcastRequest(struct_RequestMessage request);
