@@ -1,7 +1,7 @@
 #include "espnow.h"
 struct_message messageData;
 struct_pairing pairingData;
-PairingState pairingState;
+MessageState messageState;
 ScanningState scanningState;
 uint8_t dataFrame[250];
 uint8_t currentMAC[6];
@@ -30,10 +30,10 @@ void SetupOnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int l
     Serial.print(" bytes of data received from : ");
     printMAC(mac_addr);
 
-    if ((incomingData[0] == PairMessage) && (pairingState == WaitingForPairRequest)) {
+    if ((incomingData[0] == PairMessage) && (messageState == WaitingForMessage)) {
         memcpy(&pairingData, incomingData, sizeof(pairingData));
         memcpy(&currentMAC, mac_addr, 6);
-        pairingState = ProcessNewRequest;
+        messageState = ProcessNewRequest;
     }
 }
 
@@ -90,7 +90,7 @@ void ESPNowInterface::enableDeviceSetupCallback() {
     memset(currentMAC, 0, sizeof(currentMAC));
     memset(storedMAC, 0, sizeof(storedMAC));
     storedMACSet = false;
-    pairingState = WaitingForPairRequest;
+    messageState = WaitingForMessage;
     esp_now_register_recv_cb(SetupOnDataRecv);
     esp_now_register_send_cb(OnDataSent);
 }
@@ -109,8 +109,8 @@ void ESPNowInterface::disableCallback() {
     esp_now_unregister_send_cb();
 }
 
-PairingState ESPNowInterface::ProccessPairingMessage() {
-    if (pairingState == ProcessNewRequest) {
+MessageState ESPNowInterface::ProccessPairingMessage() {
+    if (messageState == ProcessNewRequest) {
         esp_now_peer_info_t peerInfo = {};
         struct_pairing pairMsg = {};
         bool identicalMAC = (memcmp(storedMAC, currentMAC, sizeof(storedMAC)) == 0);
@@ -131,24 +131,24 @@ PairingState ESPNowInterface::ProccessPairingMessage() {
                 storedMACSet = true;
 
                 esp_now_send(currentMAC, (uint8_t *)&pairMsg, sizeof(pairMsg));
-                pairingState = WaitingForPairRequest;
+                messageState = WaitingForMessage;
             } else if (identicalMAC) {
                 pairMsg.id = maxId;
                 esp_now_send(currentMAC, (uint8_t *)&pairMsg, sizeof(pairMsg));
-                pairingState = WaitingForPairRequest;
+                messageState = WaitingForMessage;
             } else {
                 // must be a message from a different peer
-                pairingState = WaitingForPairRequest;
+                messageState = WaitingForMessage;
             }
 
         } else if (identicalMAC) {
-            pairingState = PairConfirmed;
+            messageState = Complete;
             Serial.println("Paired with monitor device");
         } else {
             Serial.println("HOW did we get here?");
         }
     }
-    return pairingState;
+    return messageState;
 }
 
 uint8_t ESPNowInterface::getMaxId() {
@@ -175,10 +175,10 @@ ScanningState ESPNowInterface::ProccessScanningMessage() {
         } else if (identicalMAC) {
             pairMsg.id = maxId;
             esp_now_send(currentMAC, (uint8_t *)&pairMsg, sizeof(pairMsg));
-            pairingState = WaitingForPairRequest;
+            messageState = WaitingForMessage;
         } else {
             // must be a message from a different peer
-            pairingState = WaitingForPairRequest;
+            messageState = WaitingForMessage;
         
 
     } else if (identicalMAC) {
@@ -188,7 +188,7 @@ ScanningState ESPNowInterface::ProccessScanningMessage() {
         Serial.println("HOW did we get here?");
     }
 }
-return pairingState;
+return messageState;
 }
 
 

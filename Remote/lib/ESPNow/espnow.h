@@ -8,18 +8,17 @@
 
 #include "saved.h"
 
-enum PairingState {
-    WaitingForPairRequest,
+enum MessageState {
+    WaitingForMessage,
     ProcessNewRequest,
-    PairConfirmed, 
+    Complete,
 };
 
 enum ScanningState {
     BroadcastRequest,
     RecievedData,
-    Finished, 
+    Finished,
 };
-
 
 enum InitStatus {
     Success = 0,
@@ -33,14 +32,6 @@ enum MessageType {
     RequestMessage,
 };
 
-struct struct_message {
-    const uint8_t msgType = DataMessage;
-    uint8_t id;
-    uint16_t time;
-    uint8_t height;
-    uint8_t temp;
-};
-
 struct struct_pairing {  // new structure for pairing
     const uint8_t msgType = PairMessage;
     uint8_t id;
@@ -48,10 +39,10 @@ struct struct_pairing {  // new structure for pairing
 
 struct struct_RequestMessage {
     const uint8_t msgType = RequestMessage;
-    bool requestData = false; //
+    uint8_t monitorID = 0;
+    bool requestData = false;  //
     bool enableBuzzer = false;
     bool disableBuzzer = false;
-
 };
 
 const uint8_t MACAddress[] = {0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
@@ -69,10 +60,10 @@ class ESPNowInterface {
     void enableDeviceSetupCallback();
     void enableDeviceScanCallback();
     void disableCallback();
-    PairingState ProccessPairingMessage();
+    MessageState ProccessPairingMessage();
     ScanningState ProccessScanningMessage();
     void broadcastRequest(struct_RequestMessage request);
-    friend bool addPeer(const uint8_t *peer_addr);
+    friend bool addPeer(const uint8_t* peer_addr);
     uint8_t getMaxId();
     uint8_t* getCurrentMAC();
 };
