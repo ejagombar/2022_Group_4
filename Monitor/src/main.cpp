@@ -15,6 +15,7 @@
 #define PressureLidarVcc2 D12
 #define TempVcc D10
 #define SDVcc D6
+#define BuzzerVcc D7
 
 #define SECONDS_FROM_1970_TO_2023 1672531200
 
@@ -182,6 +183,26 @@ bool transmit() {
     return true;
 }
 
+void checkForBroadcast() {
+    struct_RequestMessage requestMessage = espNow.processRemoteBroadcast();
+    if ((requestMessage.monitorID == 0) || (requestMessage.monitorID == deviceMetadata.ID)) {
+        if (requestMessage.requestData == true) {
+            Serial.println("Received request for data");
+            while (transmit() == true) {
+                delay(100);
+            }
+        }
+        if (requestMessage.enableBuzzer == true) {
+            Serial.println("Received request to enable buzzer");
+            digitalWrite(BuzzerVcc, HIGH);
+        }
+        if (requestMessage.disableBuzzer == true) {
+            Serial.println("Received request to disable buzzer");
+            digitalWrite(BuzzerVcc, LOW);
+        }
+    }
+}
+
 void setup() {
     // put your setup code here, to run once:
     Serial.begin(115200);
@@ -190,6 +211,7 @@ void setup() {
     pinMode(PressureLidarVcc2, OUTPUT);  // PressureLidarVcc2
     pinMode(TempVcc, OUTPUT);            // TempVcc
     pinMode(SDVcc, OUTPUT);              // SDVcc
+    pinMode(BuzzerVcc, OUTPUT);          // BuzzerVcc
 
     digitalWrite(PressureLidarVcc1, HIGH);
     digitalWrite(PressureLidarVcc2, HIGH);
@@ -216,13 +238,16 @@ void setup() {
     if (deviceMetadata.ID == 0) {
         deviceMetadata.ID = setupDevice();
         Error err = setupSensors(currentTime);
-        espNow.sendStatusMessage(err, deviceMetadata.ID);
+        espNow.sendPairConfirmation(deviceMetadata.ID);
+        espNow.disableCallback();
     } else {
         setupSensors(currentTime);
     }
 
     esp_sleep_enable_ext0_wakeup(GPIO_NUM_12, 0);
     setAlarmInterval(1);  // to wake the esp
+
+    espNow.enableRemoteBroadcastListener();
 
     // digitalWrite(SDVcc, LOW);
     // esp_deep_sleep_start();
@@ -234,59 +259,43 @@ void loop() {
         uint8_t buf[13] = {0};
         measurement measure = takeSample(currentTime);
 
-        Serial.print("\n\nTime: ");
-        DateTime timeOut(measure.time + SECONDS_FROM_1970_TO_2023);
-        char time_format_buf[] = "YYYY-MM-DD hh:mm:00";
-        Serial.println(timeOut.toString(time_format_buf));
-        Serial.print("peatHeight: ");
-        Serial.println(measure.peatHeight);
-        Serial.print("waterHeight: ");
-        Serial.println(measure.waterHeight);
-        Serial.print("boxTemp: ");
-        Serial.println(measure.boxTemp);
-        Serial.print("groundTemp: ");
-        Serial.println(measure.groundTemp);
-        Serial.print("humidity: ");
-        Serial.println(measure.humidity);
-        Serial.println("-----\n");
-
         StructToArr(measure, buf);
         sd.saveMeasurement(deviceMetadata.sampleNum, buf);
 
-        Serial.println("Saved measurement:");
-        for (int i = 0; i < 13; i++) {
-            Serial.print(buf[i], HEX);
-            Serial.print(" ");
-        }
-        Serial.println();
+        // Serial.println("Saved measurement:");
+        // for (int i = 0; i < 13; i++) {
+        //     Serial.print(buf[i], HEX);
+        //     Serial.print(" ");
+        // }
+        // Serial.println();
 
-        uint8_t buf2[13] = {0};
+        // uint8_t buf2[13] = {0};
 
-        if (sd.getMeasurements((int)deviceMetadata.sampleNum, buf2, 1) == FATAL_ERROR) {
-            Serial.println("Fatal error occured");
-        }
-        measurement out = ArrToStruct(buf2);
+        // if (sd.getMeasurements((int)deviceMetadata.sampleNum, buf2, 1) == FATAL_ERROR) {
+        //     Serial.println("Fatal error occured");
+        // }
+        // measurement out = ArrToStruct(buf2);
+
+        // Serial.print("timeOut: ");
+        // DateTime timeOut2(out.time + SECONDS_FROM_1970_TO_2023);
+        // Serial.println(timeOut2.toString(time_format_buf));
+        // Serial.print("peatHeight: ");
+        // Serial.println(out.peatHeight);
+        // Serial.print("waterHeight: ");
+        // Serial.println(out.waterHeight);
+        // Serial.print("boxTemp: ");
+        // Serial.println(out.boxTemp);
+        // Serial.print("groundTemp: ");
+        // Serial.println(out.groundTemp);
+        // Serial.print("humidity: ");
+        // Serial.println(out.humidity);
+    
 
         deviceMetadata.sampleNum++;
         sd.setMetadata(deviceMetadata);
 
-        Serial.print("timeOut: ");
-        DateTime timeOut2(out.time + SECONDS_FROM_1970_TO_2023);
-        // time_format_buf[] = "YYYY-MM-DD hh:mm:00";
-        Serial.println(timeOut2.toString(time_format_buf));
-        Serial.print("peatHeight: ");
-        Serial.println(out.peatHeight);
-        Serial.print("waterHeight: ");
-        Serial.println(out.waterHeight);
-        Serial.print("boxTemp: ");
-        Serial.println(out.boxTemp);
-        Serial.print("groundTemp: ");
-        Serial.println(out.groundTemp);
-        Serial.print("humidity: ");
-        Serial.println(out.humidity);
-
-        delay(100);
+        checkForBroadcast();
+    
+        delay(300);
     }
-    transmit();
-    delay(10000);
 }
