@@ -11,7 +11,7 @@ DeviceSetup deviceSetup;
 DeviceScan deviceScan;
 HelpPage helpPage;
 ErrorPage errorPage;
-EPSNowInterface espNow;
+ESPNowInterface espNow;
 SDInterface sdInterface;
 
 MainState programState = mainMenuState;
@@ -46,7 +46,7 @@ void btn0PressedFunc() {
             }
             break;
         case scanState:
-            deviceScan.btnUpPressed();
+            deviceScan.btnCancelPressed();
             break;
         case helpState:
             helpPage.btnPrevPressed();
@@ -66,7 +66,7 @@ void btn1PressedFunc() {
             }
             break;
         case scanState:
-            deviceScan.btnDownPressed();
+            deviceScan.btnStartScanPressed();
             break;
         case helpState:
             helpPage.btnNextPressed();
