@@ -185,11 +185,12 @@ bool transmit() {
 
 void checkForBroadcast() {
     struct_RequestMessage requestMessage = espNow.processRemoteBroadcast();
+    Serial.println("Checking for broadcast");
     if ((requestMessage.monitorID == 0) || (requestMessage.monitorID == deviceMetadata.ID)) {
         if (requestMessage.requestData == true) {
             Serial.println("Received request for data");
             while (transmit() == true) {
-                delay(100);
+                delay(500);
             }
         }
         if (requestMessage.enableBuzzer == true) {
@@ -244,14 +245,14 @@ void setup() {
         setupSensors(currentTime);
     }
 
-    esp_sleep_enable_ext0_wakeup(GPIO_NUM_12, 0);
-    setAlarmInterval(1);  // to wake the esp
+    //esp_sleep_enable_ext0_wakeup(GPIO_NUM_12, 0);
+    //setAlarmInterval(3);  // to wake the esp
 
     espNow.enableRemoteBroadcastListener();
 
     // digitalWrite(SDVcc, LOW);
     // esp_deep_sleep_start();
-}
+} 
 
 void loop() {
     for (int i = 0; i < 10; i++) {
