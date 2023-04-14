@@ -1,5 +1,4 @@
 #include "espnow.h"
-struct_message messageData;
 struct_pairing pairingData;
 MessageState messageState;
 ScanningState scanningState;
@@ -43,7 +42,7 @@ void ScanOnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int le
     Serial.print(" bytes of data received from : ");
     printMAC(mac_addr);
 
-    if ((incomingData[0] == RequestMessage) && (scanningState == BroadcastRequest)) {
+    if (incomingData[0] == DataMessage) {
         memcpy(&dataFrame, incomingData, sizeof(dataFrame));
         memcpy(&currentMAC, mac_addr, 6);
         scanningState = RecievedData;
@@ -163,34 +162,17 @@ void ESPNowInterface::broadcastRequest(struct_RequestMessage request) {
     esp_now_send(NULL, (uint8_t *)&request, sizeof(request));
 }
 
-ScanningState ESPNowInterface::ProccessScanningMessage() {
-    esp_now_peer_info_t peerInfo = {};
-    struct_pairing pairMsg = {};
-    if (scanningState == RecievedData) {
-        bool identicalMAC = (memcmp(storedMAC, currentMAC, sizeof(storedMAC)) == 0);
-        if (storedMACSet == false) {
-            memcpy(storedMAC, &currentMAC, 6);
-            storedMACSet = true;
-
-        } else if (identicalMAC) {
-            pairMsg.id = maxId;
-            esp_now_send(currentMAC, (uint8_t *)&pairMsg, sizeof(pairMsg));
-            messageState = WaitingForMessage;
-        } else {
-            // must be a message from a different peer
-            messageState = WaitingForMessage;
-        
-
-    } else if (identicalMAC) {
-        pairingState = PairConfirmed;
-        Serial.println("Paired with monitor device");
-    } else {
-        Serial.println("HOW did we get here?");
-    }
-}
-return messageState;
+ScanningState ESPNowInterface::getScanningState() {
+    return scanningState;
 }
 
+void ESPNowInterface::setScanningState(ScanningState state) {
+    scanningState = state;
+}
 
-//need to change from same mac to same id number
-//need to first write function that will compact all the data into a 250 byte frame and send that from the monitor program.
+uint8_t *ESPNowInterface::getDataFrame() {
+    return dataFrame;
+}
+
+// need to change from same mac to same id number
+// need to first write function that will compact all the data into a 250 byte frame and send that from the monitor program.

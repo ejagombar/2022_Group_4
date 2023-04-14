@@ -52,7 +52,7 @@ MainState MainMenu::btnEnterPressed() {
             selection = setUpState;
             break;
         case 1:
-            selection = scanState;
+            selection = broadcastState;
             break;
         case 3:
             selection = resetState;
@@ -166,7 +166,7 @@ void DeviceScan::InitScreen() {
     screen.setCursor(5, YMIN + 60 + 30);
 }
 
-void DeviceScan::btnStartScanPressed() {
+void DeviceScan::btnStartBroadcastPressed() {
     screen.fillRect(40, 60, XMAX - 80, 120, COLOR_RGB565_BLACK);
     const String menuItems[3] = {"", "Cancel", "Back"};
     printMenuBar(menuItems);

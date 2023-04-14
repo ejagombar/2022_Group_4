@@ -17,7 +17,7 @@ enum MessageState {
 enum ScanningState {
     BroadcastRequest,
     RecievedData,
-    Finished,
+    ScanComplete,
 };
 
 enum InitStatus {
@@ -61,7 +61,9 @@ class ESPNowInterface {
     void enableDeviceScanCallback();
     void disableCallback();
     MessageState ProccessPairingMessage();
-    ScanningState ProccessScanningMessage();
+    ScanningState getScanningState();
+    void setScanningState(ScanningState state);
+    uint8_t* getDataFrame();
     void broadcastRequest(struct_RequestMessage request);
     friend bool addPeer(const uint8_t* peer_addr);
     uint8_t getMaxId();

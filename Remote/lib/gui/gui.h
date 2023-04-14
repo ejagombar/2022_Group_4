@@ -22,15 +22,15 @@
 enum MainState {
     mainMenuState,
     setUpState,
-    scanState,
+    broadcastState,
     resetState,
     helpState,
 };
 
-enum DeviceSetupState {
+enum CommsState {
     WaitForUserInput,
-    Scan,
-    DisplayNumber,
+    SendReceive,
+    CommsComplete,
 };
 
 //--------------------------------------------------------------------------------------------//
@@ -57,9 +57,6 @@ class MainMenu {
 //--------------------------------------------------------------------------------------------//
 
 class DeviceSetup {
-   private:
-    DeviceSetupState devicesetupState;
-
    public:
     void btnStartScanPressed();
     void btnCancelPressed();
@@ -72,11 +69,11 @@ class DeviceSetup {
 //--------------------------------------------------------------------------------------------//
 
 class DeviceScan {
+   private:
    public:
     void btnCancelPressed();
-    void btnStartScanPressed();
+    void btnStartBroadcastPressed();
     void InitScreen();
-    ~DeviceScan(){};
     DeviceScan(){};
 };
 
