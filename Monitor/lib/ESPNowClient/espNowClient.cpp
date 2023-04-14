@@ -1,8 +1,8 @@
 #include "espNowClient.h"
 
 struct_pairing pairingData;
-struct_message myData;  // data to send
-PairingState pairingState;
+struct_RequestMessage requestMessage;
+MessageState messageState;
 
 uint8_t serverAddress[6] = {0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
 
@@ -13,61 +13,26 @@ void printMAC(const uint8_t *mac_addr) {
     Serial.print(macStr);
 }
 
-// void SetUpOnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
-//     Serial.print("\r\nLast Packet Send Status:\t");
-//     Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Sent Success" : "Sent Fail");
-// }
-
 void SetUpOnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {
     Serial.print("Packet received from: ");
     printMAC(mac_addr);
 
     if ((incomingData[0] == PairMessage) && (memcmp(mac_addr, serverAddress, 6) == 0)) {
         memcpy(&pairingData, incomingData, sizeof(pairingData));
-        pairingState = ProcessNewRequest;
+        messageState = ProcessNewRequest;
     }
 }
-void RemoteBroadcastListener(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {
-    if ((incomingData[0] == PairMessage) && (memcmp(mac_addr, serverAddress, 6) == 0)) {
-        memcpy(&pairingData, incomingData, sizeof(pairingData));
-        pairingState = ProcessNewRequest;
+void RemoteBroadcastListenerOnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {
+    Serial.print("Packet received from: ");
+    printMAC(mac_addr);
+
+    if ((incomingData[0] == RequestMessage) && (memcmp(mac_addr, serverAddress, 6) == 0)) {
+        memcpy(&requestMessage, incomingData, sizeof(requestMessage));
+        messageState = ProcessNewRequest;
     }
 }
 
 //=================================================================================================
-
-void ESPNowClient::sendPairRequest() {
-    pairingData.id = 0;
-
-    esp_now_send(serverAddress, (uint8_t *)&pairingData, sizeof(pairingData));
-    Serial.println("Attempting to send pairing message");
-}
-
-void ESPNowClient::sendDataPacket(uint8_t *packet) {
-    esp_now_send(serverAddress, (uint8_t *)&packet, sizeof(packet));
-    Serial.println("Attempting to send data message");
-}
-
-int ESPNowClient::processPairingandGetID() {
-    if (pairingState == ProcessNewRequest) {
-        int myID = pairingData.id;
-        Serial.print("Mydata.Id changed to ");
-        Serial.println(myID);
-        pairingState = PairConfirmed;
-        return myID;
-    } else {
-        return 0;
-    }
-}
-
-void ESPNowClient::enableDeviceSetupCallback() {
-    esp_now_register_recv_cb(SetUpOnDataRecv);
-}
-
-void ESPNowClient::disableCallback() {
-    esp_now_unregister_recv_cb();
-    esp_now_unregister_send_cb();
-}
 
 Error ESPNowClient::init() {
     WiFi.mode(WIFI_STA);
@@ -89,14 +54,58 @@ Error ESPNowClient::init() {
     return NO_ERROR;
 }
 
-void ESPNowClient::enableRemoteBroadcastListener() {
-    esp_now_register_recv_cb(RemoteBroadcastListener);
+void ESPNowClient::enableDeviceSetupCallback() {
+    esp_now_register_recv_cb(SetUpOnDataRecv);
+    messageState = WaitingForMessage;
 }
 
-// Unfinished function. The sensor status is not actaully sent. just a confirmation is sent
-void ESPNowClient::sendStatusMessage(Error sensorStatus, uint8_t id) {
-    struct_pairing pairedData;
-    pairedData.id = 2;
+void ESPNowClient::enableRemoteBroadcastListener() {
+    esp_now_register_recv_cb(RemoteBroadcastListenerOnDataRecv);
+    messageState = WaitingForMessage;
+}
 
+void ESPNowClient::disableCallback() {
+    esp_now_unregister_recv_cb();
+    esp_now_unregister_send_cb();
+}
+
+void ESPNowClient::sendPairRequest() {
+    pairingData.id = 0;
+
+    esp_now_send(serverAddress, (uint8_t *)&pairingData, sizeof(pairingData));
+    Serial.println("Attempting to send pairing message");
+}
+
+void ESPNowClient::sendPairConfirmation(uint8_t id) {
+    struct_pairing pairedData;
+    pairedData.id = id;
     esp_now_send(serverAddress, (uint8_t *)&pairedData, sizeof(pairedData));
+}
+
+void ESPNowClient::sendDataPacket(uint8_t *packet) {
+    esp_now_send(serverAddress, (uint8_t *)&packet, sizeof(packet));
+    Serial.println("Attempting to send data message");
+}
+
+int ESPNowClient::processPairingandGetID() {
+    if (messageState == ProcessNewRequest) {
+        int myID = pairingData.id;
+        Serial.print("Mydata.Id changed to ");
+        Serial.println(myID);
+        messageState = Complete;
+        return myID;
+    } else {
+        return 0;
+    }
+}
+
+struct_RequestMessage ESPNowClient::processRemoteBroadcast() {
+    if (messageState == ProcessNewRequest) {
+        Serial.println("New request received");
+        messageState = WaitingForMessage;
+        return requestMessage;
+    } else {
+        struct_RequestMessage emptyRequest;
+        return emptyRequest;
+    }
 }

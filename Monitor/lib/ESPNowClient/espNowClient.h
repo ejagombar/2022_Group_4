@@ -6,28 +6,13 @@
 #include <WiFi.h>
 #include <esp_now.h>
 #include <esp_wifi.h>
+
 #include "Error.h"
-
-
 
 enum MessageType {
     PairMessage,
     DataMessage,
-    StatusMessage,
-};
-
-struct struct_message {
-    const uint8_t msgType = DataMessage;
-    uint8_t id;
-    uint8_t height;
-    uint8_t temp;
-    uint16_t time;
-};
-
-struct struct_status {  // new structure for pairing
-    const uint8_t msgType = StatusMessage;
-    uint8_t id;
-    uint8_t sensorStatus;
+    RequestMessage,
 };
 
 struct struct_pairing {  // new structure for pairing
@@ -35,28 +20,36 @@ struct struct_pairing {  // new structure for pairing
     uint8_t id;
 };
 
-enum PairingState {
-    WaitingForPairRequest,
-    ProcessNewRequest,
-    PairConfirmed,
+struct struct_RequestMessage {
+    const uint8_t msgType = RequestMessage;
+    uint8_t monitorID = 0;
+    bool requestData = false;  //
+    bool enableBuzzer = false;
+    bool disableBuzzer = false;
 };
 
-
-
-
+enum MessageState {
+    WaitingForMessage,
+    ProcessNewRequest,
+    Complete,
+};
 
 class ESPNowClient {
    private:
    public:
     ESPNowClient(){};
+
     Error init();
-    void sendPairRequest();
-    void sendDataPacket(uint8_t *packet);
-    int processPairingandGetID();
     void enableDeviceSetupCallback();
     void enableRemoteBroadcastListener();
     void disableCallback();
-    void sendStatusMessage(Error sensorStatus, uint8_t id);
+
+    void sendPairRequest();
+    void sendDataPacket(uint8_t *packet);
+    void sendPairConfirmation(uint8_t id);
+
+    int processPairingandGetID();
+    struct_RequestMessage processRemoteBroadcast();
 };
 
 #endif  // ESPNOWCLIENT_H
