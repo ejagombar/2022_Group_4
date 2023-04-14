@@ -14,6 +14,12 @@ enum PairingState {
     PairConfirmed, 
 };
 
+enum ScanningState {
+    BroadcastRequest,
+    RecievedData,
+    Finished, 
+};
+
 
 enum InitStatus {
     Success = 0,
@@ -24,6 +30,7 @@ enum InitStatus {
 enum MessageType {
     PairMessage,
     DataMessage,
+    RequestMessage,
 };
 
 struct struct_message {
@@ -39,23 +46,32 @@ struct struct_pairing {  // new structure for pairing
     uint8_t id;
 };
 
+struct struct_RequestMessage {
+    const uint8_t msgType = RequestMessage;
+    bool requestData = false; //
+    bool enableBuzzer = false;
+    bool disableBuzzer = false;
+
+};
+
 const uint8_t MACAddress[] = {0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
 
 // This is an interface class used to invoke various ESPNow functions.
-class EPSNowInterface {
+class ESPNowInterface {
    private:
     uint8_t deviceCount = 0;
 
    public:
-    EPSNowInterface(){};
-    ~EPSNowInterface(){};
+    ESPNowInterface(){};
+    ~ESPNowInterface(){};
     int init();
     int deinit();
     void enableDeviceSetupCallback();
     void enableDeviceScanCallback();
     void disableCallback();
     PairingState ProccessPairingMessage();
-    void sendTestMessage();
+    ScanningState ProccessScanningMessage();
+    void broadcastRequest(struct_RequestMessage request);
     friend bool addPeer(const uint8_t *peer_addr);
     uint8_t getMaxId();
     uint8_t* getCurrentMAC();

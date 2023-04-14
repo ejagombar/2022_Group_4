@@ -2,6 +2,8 @@
 struct_message messageData;
 struct_pairing pairingData;
 PairingState pairingState;
+ScanningState scanningState;
+uint8_t dataFrame[250];
 uint8_t currentMAC[6];
 uint8_t storedMAC[6];
 bool storedMACSet;
@@ -22,7 +24,7 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
     Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
 }
 
-void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {
+void SetupOnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {
     Serial.println();
     Serial.print(len);
     Serial.print(" bytes of data received from : ");
@@ -35,9 +37,22 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {
     }
 }
 
+void ScanOnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {
+    Serial.println();
+    Serial.print(len);
+    Serial.print(" bytes of data received from : ");
+    printMAC(mac_addr);
+
+    if ((incomingData[0] == RequestMessage) && (scanningState == BroadcastRequest)) {
+        memcpy(&dataFrame, incomingData, sizeof(dataFrame));
+        memcpy(&currentMAC, mac_addr, 6);
+        scanningState = RecievedData;
+    }
+}
+
 //--------------------------------------------------------------------------------------------//
 
-int EPSNowInterface::init() {
+int ESPNowInterface::init() {
     if (!WiFi.mode(WIFI_STA)) {
         Serial.println("Error initializing Wifi");
         return WifiModeFail;
@@ -56,7 +71,7 @@ int EPSNowInterface::init() {
     return Success;
 }
 
-int EPSNowInterface::deinit() {
+int ESPNowInterface::deinit() {
     if (esp_now_deinit() != ESP_OK) {
         Serial.println("Error deinitializing ESP-NOW");
         return ESPNowFail;
@@ -71,25 +86,30 @@ int EPSNowInterface::deinit() {
     return Success;
 }
 
-void EPSNowInterface::enableDeviceSetupCallback() {
+void ESPNowInterface::enableDeviceSetupCallback() {
     memset(currentMAC, 0, sizeof(currentMAC));
     memset(storedMAC, 0, sizeof(storedMAC));
     storedMACSet = false;
     pairingState = WaitingForPairRequest;
-    esp_now_register_recv_cb(OnDataRecv);
+    esp_now_register_recv_cb(SetupOnDataRecv);
     esp_now_register_send_cb(OnDataSent);
 }
 
-void EPSNowInterface::enableDeviceScanCallback() {
-    esp_now_register_recv_cb(OnDataRecv);
+void ESPNowInterface::enableDeviceScanCallback() {
+    memset(currentMAC, 0, sizeof(currentMAC));
+    memset(storedMAC, 0, sizeof(storedMAC));
+    memset(dataFrame, 0, sizeof(dataFrame));
+    scanningState = BroadcastRequest;
+    esp_now_register_recv_cb(ScanOnDataRecv);
+    esp_now_register_send_cb(OnDataSent);
 }
 
-void EPSNowInterface::disableCallback() {
+void ESPNowInterface::disableCallback() {
     esp_now_unregister_recv_cb();
     esp_now_unregister_send_cb();
 }
 
-PairingState EPSNowInterface::ProccessPairingMessage() {
+PairingState ESPNowInterface::ProccessPairingMessage() {
     if (pairingState == ProcessNewRequest) {
         esp_now_peer_info_t peerInfo = {};
         struct_pairing pairMsg = {};
@@ -117,8 +137,8 @@ PairingState EPSNowInterface::ProccessPairingMessage() {
                 esp_now_send(currentMAC, (uint8_t *)&pairMsg, sizeof(pairMsg));
                 pairingState = WaitingForPairRequest;
             } else {
-              // must be a message from a different peer
-              pairingState = WaitingForPairRequest;
+                // must be a message from a different peer
+                pairingState = WaitingForPairRequest;
             }
 
         } else if (identicalMAC) {
@@ -131,11 +151,46 @@ PairingState EPSNowInterface::ProccessPairingMessage() {
     return pairingState;
 }
 
-uint8_t EPSNowInterface::getMaxId() {
+uint8_t ESPNowInterface::getMaxId() {
     return maxId;
 }
 
-uint8_t* EPSNowInterface::getCurrentMAC(){
+uint8_t *ESPNowInterface::getCurrentMAC() {
     return currentMAC;
 }
 
+void ESPNowInterface::broadcastRequest(struct_RequestMessage request) {
+    esp_now_send(NULL, (uint8_t *)&request, sizeof(request));
+}
+
+ScanningState ESPNowInterface::ProccessScanningMessage() {
+    esp_now_peer_info_t peerInfo = {};
+    struct_pairing pairMsg = {};
+    if (scanningState == RecievedData) {
+        bool identicalMAC = (memcmp(storedMAC, currentMAC, sizeof(storedMAC)) == 0);
+        if (storedMACSet == false) {
+            memcpy(storedMAC, &currentMAC, 6);
+            storedMACSet = true;
+
+        } else if (identicalMAC) {
+            pairMsg.id = maxId;
+            esp_now_send(currentMAC, (uint8_t *)&pairMsg, sizeof(pairMsg));
+            pairingState = WaitingForPairRequest;
+        } else {
+            // must be a message from a different peer
+            pairingState = WaitingForPairRequest;
+        
+
+    } else if (identicalMAC) {
+        pairingState = PairConfirmed;
+        Serial.println("Paired with monitor device");
+    } else {
+        Serial.println("HOW did we get here?");
+    }
+}
+return pairingState;
+}
+
+
+//need to change from same mac to same id number
+//need to first write function that will compact all the data into a 250 byte frame and send that from the monitor program.
