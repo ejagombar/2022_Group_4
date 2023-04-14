@@ -166,7 +166,7 @@ bool transmit() {
         return false;
     }
     uint8_t packet[250] = {0};
-    packet[0] = 1;  // data packet
+    packet[0] = DataMessage;  // data packet
     packet[1] = deviceMetadata.ID;
     packet[2] = sampleCount;
     if (sd.getMeasurements(startlocation, &packet[3], sampleCount) == FATAL_ERROR) {

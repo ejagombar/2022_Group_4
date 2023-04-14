@@ -23,7 +23,7 @@ struct struct_pairing {  // new structure for pairing
 struct struct_RequestMessage {
     const uint8_t msgType = RequestMessage;
     uint8_t monitorID = 0;
-    bool requestData = false;  //
+    bool requestData = false;
     bool enableBuzzer = false;
     bool disableBuzzer = false;
 };
