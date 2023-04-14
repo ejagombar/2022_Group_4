@@ -73,7 +73,7 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status)
     Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Sent Success" : "Sent Fail");
 }
 
-void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len)
+void SetupOnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len)
 {
     Serial.print("Packet received from: ");
     printMAC(mac_addr);
@@ -129,7 +129,7 @@ void setup()
     }
 
     esp_now_register_send_cb(OnDataSent);
-    esp_now_register_recv_cb(OnDataRecv);
+    esp_now_register_recv_cb(SetupOnDataRecv);
 
     esp_now_peer_info_t peerInfo = {};
     // register peer
