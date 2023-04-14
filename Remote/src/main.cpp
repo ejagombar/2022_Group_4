@@ -88,12 +88,12 @@ void btn2PressedFunc() {
             if (programState == setUpState) {
                 commsState = WaitForUserInput;
                 deviceSetup.InitScreen();
-                //espNow.init();
+                // espNow.init();
             }
             if (programState == broadcastState) {
                 commsState = WaitForUserInput;
                 deviceBroadcast.InitScreen();
-                //espNow.init();
+                // espNow.init();
             }
             if (programState == helpState) {
                 helpPage.InitScreen();
@@ -106,7 +106,7 @@ void btn2PressedFunc() {
         case setUpState:
 
             espNow.disableCallback();
-            //espNow.deinit();
+            // espNow.deinit();
             programState = mainMenuState;
             mainMenu.InitScreen();
 
@@ -115,7 +115,7 @@ void btn2PressedFunc() {
         case broadcastState:
 
             espNow.disableCallback();
-            //espNow.deinit();
+            // espNow.deinit();
             programState = mainMenuState;
             mainMenu.InitScreen();
 
@@ -150,6 +150,10 @@ void setup() {
     unsigned long previousMillis = 0;
 
     espNow.init();
+    for (int i = 0; i < sdInterface.GetDeviceCount(); i++) {
+        SavedDevice temp = sdInterface.GetDevice(i);
+        espNow.addDevice(temp.macAddr);
+    }
 }
 
 void loop() {
