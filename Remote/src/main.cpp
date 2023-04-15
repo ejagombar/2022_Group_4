@@ -185,11 +185,11 @@ void loop() {
             Serial.println("Broadcasting Request");
         }
 
-        if (espNow.getScanningState() == RecievedData) {
+        if (espNow.getScanningState() == ProcessNewRequest) {
             uint8_t dataFrame[250];
             memcpy(&dataFrame, espNow.getDataFrame(), sizeof(dataFrame));
 
-            espNow.setScanningState(BroadcastRequest);
+            espNow.setScanningState(WaitingForMessage);
 
             for (int i = 0; i < 250; i++) {
                 Serial.print(dataFrame[i], HEX);
@@ -198,3 +198,9 @@ void loop() {
         }
     }
 }
+
+//save the incoming data asap to the sd card. seperate text file for each monitor.
+
+//may need to have a bit of a buffer otherwise there may be too much data idk ill try it without a buffer first and see.
+//once this is done then all that is left to do is the buzzer mode which only small.
+//then need to to do some small tests
