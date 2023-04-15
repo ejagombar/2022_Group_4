@@ -40,7 +40,7 @@ void ScanOnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int le
     printMAC(mac_addr);
 
     if (incomingData[0] == DataMessage) {
-        memcpy(&dataFrame, incomingData, sizeof(dataFrame));
+        memcpy(&dataFrame, incomingData, len);
         memcpy(&currentMAC, mac_addr, 6);
         messageState = ProcessNewRequest;
     }
