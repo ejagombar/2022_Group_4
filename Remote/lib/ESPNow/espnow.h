@@ -14,12 +14,6 @@ enum MessageState {
     Complete,
 };
 
-enum ScanningState {
-    BroadcastRequest,
-    RecievedData,
-    ScanComplete,
-};
-
 enum InitStatus {
     Success = 0,
     WifiModeFail = -1,
@@ -63,9 +57,10 @@ class ESPNowInterface {
     void enableDeviceScanCallback();
     void disableCallback();
     MessageState ProccessPairingMessage();
-    ScanningState getScanningState();
+    MessageState getScanningState();
+    void setScanningState(MessageState state);
     void addDevice(uint8_t* deviceMAC);
-    void setScanningState(ScanningState state);
+    
     uint8_t* getDataFrame();
     void broadcastRequest(struct_RequestMessage request);
     friend bool addPeer(const uint8_t* peer_addr);

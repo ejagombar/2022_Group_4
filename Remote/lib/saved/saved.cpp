@@ -38,7 +38,7 @@ void SDInterface::AddDevice(SavedDevice deviceIn) {
 
         deviceCount++;
         CurrentFile.seek(0);
-        CurrentFile.write(&deviceCount,sizeof(deviceCount));
+        CurrentFile.write(&deviceCount, sizeof(deviceCount));
         CurrentFile.close();
     }
 }
@@ -56,4 +56,55 @@ SavedDevice SDInterface::GetDevice(uint8_t index) {
         CurrentFile.close();
     }
     return deviceOut;
+}
+
+void SDInterface::openMonitorFile(char* fileName) {
+    CurrentFile = SD.open(fileName, FILE_APPEND);
+}
+
+void SDInterface::closeFile() {
+    CurrentFile.close();
+}
+
+void SDInterface::printPacket(measurement measurementIn, char* dateTime) {
+    CurrentFile.print(dateTime);
+    CurrentFile.print(", ");
+    CurrentFile.print(measurementIn.peatHeight);
+    CurrentFile.print(", ");
+    CurrentFile.print(measurementIn.waterHeight);
+    CurrentFile.print(", ");
+    CurrentFile.print((float)measurementIn.boxTemp/100.0);
+    CurrentFile.print(", ");
+    CurrentFile.print((float)measurementIn.groundTemp/100.0);
+    CurrentFile.print(", ");
+    CurrentFile.print((float)measurementIn.humidity/100.0);
+    CurrentFile.println("");
+}
+
+void StructToArr(measurement measurementIn, uint8_t* arrOut) {
+    uint32_t tmp = measurementIn.time / 60;
+
+    memcpy(&arrOut[0], &tmp, 3);
+    memcpy(&arrOut[3], &measurementIn.peatHeight, 2);
+    memcpy(&arrOut[5], &measurementIn.waterHeight, 2);
+    memcpy(&arrOut[7], &measurementIn.boxTemp, 2);
+    memcpy(&arrOut[9], &measurementIn.groundTemp, 2);
+    memcpy(&arrOut[11], &measurementIn.humidity, 2);
+}
+
+measurement ArrToStruct(uint8_t* arrIn) {
+    measurement measurementOut = {0, 0, 0, 0, 0, 0};
+    uint32_t tmp = 0;
+
+    memcpy(&tmp, &arrIn[0], 3);
+
+    measurementOut.time = tmp * 60;
+
+    memcpy(&measurementOut.peatHeight, &arrIn[3], 2);
+    memcpy(&measurementOut.waterHeight, &arrIn[5], 2);
+    memcpy(&measurementOut.boxTemp, &arrIn[7], 2);
+    memcpy(&measurementOut.groundTemp, &arrIn[9], 2);
+    memcpy(&measurementOut.humidity, &arrIn[11], 2);
+
+    return measurementOut;
 }

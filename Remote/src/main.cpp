@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <RTClib.h>
 
 #include "button.h"
 #include "espnow.h"
@@ -20,6 +21,9 @@ CommsState commsState;
 unsigned long currentMillis;
 unsigned long previousMillis = 0;
 const long interval = 500;
+
+#define SECONDS_FROM_1970_TO_2023 1672531200
+char time_format_buf[] = "YYYY-MM-DDThh:mm:00";
 
 void processButton(Button &btn) {
     if ((digitalRead(btn.getPin()) == LOW) && btn.getReady()) {
@@ -185,16 +189,40 @@ void loop() {
             Serial.println("Broadcasting Request");
         }
 
-        if (espNow.getScanningState() == RecievedData) {
-            uint8_t dataFrame[250];
+        if (espNow.getScanningState() == ProcessNewRequest) {
+            uint8_t dataFrame[250] = {};
             memcpy(&dataFrame, espNow.getDataFrame(), sizeof(dataFrame));
 
-            espNow.setScanningState(BroadcastRequest);
+            espNow.setScanningState(WaitingForMessage);
 
-            for (int i = 0; i < 250; i++) {
-                Serial.print(dataFrame[i], HEX);
-                Serial.print(" ");
+            uint8_t id = dataFrame[1];
+            uint8_t sampleCount = dataFrame[2];
+            char fileNameBuf[8] = {0};
+            sprintf(fileNameBuf, "/%03d.txt", id);
+
+            sdInterface.openMonitorFile(fileNameBuf);
+
+            for (int i = 0; i < sampleCount; i++) {
+                measurement tmp = ArrToStruct(&dataFrame[3 + 13 * i]);
+
+                DateTime timeOut(tmp.time + SECONDS_FROM_1970_TO_2023);
+                char time[20];
+                memcpy(&time, timeOut.toString(time_format_buf), sizeof(time_format_buf));
+
+                sdInterface.printPacket(tmp, time);
             }
+            sdInterface.closeFile();
+
+            // for (int i = 0; i < 250; i++) {
+            //     Serial.print(dataFrame[i], HEX);
+            //     Serial.print(" ");
+            // }
         }
     }
 }
+
+// save the incoming data asap to the sd card. seperate text file for each monitor.
+
+// may need to have a bit of a buffer otherwise there may be too much data idk ill try it without a buffer first and see.
+// once this is done then all that is left to do is the buzzer mode which only small.
+// then need to to do some small tests

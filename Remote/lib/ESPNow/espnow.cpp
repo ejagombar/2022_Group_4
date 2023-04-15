@@ -1,7 +1,6 @@
 #include "espnow.h"
 struct_pairing pairingData;
 MessageState messageState;
-ScanningState scanningState;
 uint8_t dataFrame[250];
 uint8_t currentMAC[6];
 uint8_t storedMAC[6];
@@ -41,9 +40,9 @@ void ScanOnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int le
     printMAC(mac_addr);
 
     if (incomingData[0] == DataMessage) {
-        memcpy(&dataFrame, incomingData, sizeof(dataFrame));
+        memcpy(&dataFrame, incomingData, len);
         memcpy(&currentMAC, mac_addr, 6);
-        scanningState = RecievedData;
+        messageState = ProcessNewRequest;
     }
 }
 
@@ -106,7 +105,7 @@ void ESPNowInterface::enableDeviceScanCallback() {
     memset(currentMAC, 0, sizeof(currentMAC));
     memset(storedMAC, 0, sizeof(storedMAC));
     memset(dataFrame, 0, sizeof(dataFrame));
-    scanningState = BroadcastRequest;
+    messageState = WaitingForMessage;
     esp_now_register_recv_cb(ScanOnDataRecv);
     esp_now_register_send_cb(OnDataSent);
 }
@@ -174,17 +173,14 @@ void ESPNowInterface::broadcastRequest(struct_RequestMessage request) {
     esp_now_send(NULL, (uint8_t *)&request, sizeof(request));
 }
 
-ScanningState ESPNowInterface::getScanningState() {
-    return scanningState;
+MessageState ESPNowInterface::getScanningState() {
+    return messageState;
 }
 
-void ESPNowInterface::setScanningState(ScanningState state) {
-    scanningState = state;
+void ESPNowInterface::setScanningState(MessageState state) {
+    messageState = state;
 }
 
 uint8_t *ESPNowInterface::getDataFrame() {
     return dataFrame;
 }
-
-// need to change from same mac to same id number
-// need to first write function that will compact all the data into a 250 byte frame and send that from the monitor program.
