@@ -14,8 +14,8 @@ void printMAC(const uint8_t *mac_addr) {
 }
 
 void SetUpOnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {
-    Serial.print("Packet received from: ");
-    printMAC(mac_addr);
+    // Serial.print("Packet received from: ");
+    // printMAC(mac_addr);
 
     if ((incomingData[0] == PairMessage) && (memcmp(mac_addr, serverAddress, 6) == 0)) {
         memcpy(&pairingData, incomingData, sizeof(pairingData));
@@ -23,8 +23,8 @@ void SetUpOnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int l
     }
 }
 void RemoteBroadcastListenerOnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {
-    Serial.print("Packet received from: ");
-    printMAC(mac_addr);
+    // Serial.print("Packet received from: ");
+    // printMAC(mac_addr);
 
     if ((incomingData[0] == RequestMessage) && (memcmp(mac_addr, serverAddress, 6) == 0)) {
         memcpy(&requestMessage, incomingData, sizeof(requestMessage));
@@ -83,7 +83,7 @@ void ESPNowClient::sendPairConfirmation(uint8_t id) {
 }
 
 void ESPNowClient::sendDataPacket(uint8_t *packet) {
-    esp_now_send(serverAddress, (uint8_t *)&packet, sizeof(packet));
+    esp_now_send(serverAddress, packet, 250);
     Serial.println("Attempting to send data message");
 }
 
