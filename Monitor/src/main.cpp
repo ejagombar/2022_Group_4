@@ -32,13 +32,12 @@ RTC_PCF8523 Rtc;
 volatile bool alarm_triggered = false;
 metadata deviceMetadata = {};
 
-char time_format_buf[] = "DD/MM/YY hh:mm:00";
-
 void alarmISR() {
     alarm_triggered = true;
 }
 
 void setAlarmInterval(uint8_t interval) {
+    char time_format_buf[] = "DD/MM/YY hh:mm:00";
     alarm_triggered = false;
 
     DateTime current_time = Rtc.now();
@@ -58,6 +57,7 @@ Error setupSensors(DateTime currentTime) {
     Error err;
     String errorMsg;
     Error errOccured = NO_ERROR;
+    char time_format_buf[] = "DD/MM/YY hh:mm:00";
 
     err = distanceSensor.setup();
     if (err != NO_ERROR) {
@@ -89,6 +89,7 @@ measurement takeSample(DateTime currentTime) {
     measurement sample;
     Error err;
     String errorMsg;
+    char time_format_buf[] = "DD/MM/YY hh:mm:00";
 
     err = tempSensor.measure();
     if (err == NO_ERROR) {
