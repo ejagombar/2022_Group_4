@@ -18,7 +18,9 @@ Error DistanceSensor::measure() {
 
         if (measureData.RangeStatus == 0)  // keep only the good readings
         {
-            mySamples.addSample(measureData.RangeMilliMeter);
+            if (measureData.RangeMilliMeter != 0) {
+                mySamples.addSample(measureData.RangeMilliMeter);
+            }
         } else {
             errorOccured = true;
         }
