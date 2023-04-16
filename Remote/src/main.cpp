@@ -25,7 +25,7 @@ unsigned long previousMillis = 0;
 const long interval = 500;
 
 #define SECONDS_FROM_1970_TO_2023 1672531200
-char time_format_buf[] = "DD/MM/YY hh:mm:00";
+char time_format_buf[] = "DD/MM/YY,hh:mm:00";
 
 void processButton(Button &btn) {
     if ((digitalRead(btn.getPin()) == LOW) && btn.getReady()) {
@@ -213,7 +213,6 @@ void loop() {
             request.requestData = true;
             request.enableBuzzer = false;
             espNow.broadcastRequest(request);
-            Serial.println("Broadcasting Request");
         }
 
         if (espNow.getScanningState() == ProcessNewRequest) {
@@ -231,10 +230,11 @@ void loop() {
             sdInterface.openMonitorFile(fileNameBuf);
 
             for (int i = 0; i < sampleCount; i++) {
-                measurement tmp = ArrToStruct(&dataFrame[3 + 13 * i]);
-
-                DateTime timeOut(tmp.time + SECONDS_FROM_1970_TO_2023);
+                char time_format_buf[] = "DD/MM/YY,hh:mm:00";
                 char time[20];
+
+                measurement tmp = ArrToStruct(&dataFrame[3 + 13 * i]);
+                DateTime timeOut(tmp.time + SECONDS_FROM_1970_TO_2023);
                 memcpy(&time, timeOut.toString(time_format_buf), sizeof(time_format_buf));
 
                 sdInterface.printPacket(tmp, time);
