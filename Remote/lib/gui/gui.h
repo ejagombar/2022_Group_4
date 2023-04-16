@@ -40,7 +40,7 @@ class MainMenu {
     uint8_t cursorPosition = 0;
     static const uint8_t highLightPadding = 5;
     static const uint8_t listLength = 5;   
-    const String menuItems[listLength] = {"Setup Monitor", "Fetch Data", "View Data", "Reset", "Help"};
+    const String menuItems[listLength] = {"Setup Monitor", "Fetch Data", "Find Monitor", "Reset", "Help"};
 
     void SelectItem(uint8_t index);
     void UnselectItem(uint8_t index);
@@ -90,7 +90,7 @@ class HelpPage {
 
     // The Width of the screen is:   <-------------------->
     const String contents[pageMax] = {"Use the \"Setup        Monitors\" function      to configure a new    device. Turn on the   device first and the  remote to recognize it and assign it a value.",
-                                      "\"Scan Monitors\" will  enable broadcasting   mode. When a monitor  wakes up, it will     connect to the remote  and transmit any new   data.",
+                                      "\"Fetch Data\" will     enable broadcasting   mode. When a monitor  wakes up, it will     connect to the remote  and transmit any new   data.",
                                       "  Group 4 Project by:\n\n       Ed Agombar\n      Alex Morton\n     Marquis Thomas\n      Yu Liang Gan\n     Xiang Yong Gan"};
 
    public:

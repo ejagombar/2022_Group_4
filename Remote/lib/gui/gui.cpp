@@ -158,7 +158,7 @@ void DeviceDataFetch::InitScreen() {
 
     screen.setTextSize(1);
     screen.setFont(&FreeMono18pt7b);
-    screen.setCursor(38, YMIN + 25);
+    screen.setCursor(46, YMIN + 25);
     screen.print("Fetch Data");
 
     const String menuItems[3] = {"Fetch", "", "Back"};
