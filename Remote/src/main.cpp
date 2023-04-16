@@ -9,7 +9,7 @@
 
 MainMenu mainMenu;
 DeviceSetup deviceSetup;
-DeviceScan deviceBroadcast;
+DeviceDataFetch deviceDataFetch;
 HelpPage helpPage;
 ErrorPage errorPage;
 ESPNowInterface espNow;
@@ -49,7 +49,7 @@ void btn0PressedFunc() {
             break;
         case broadcastState:
             if ((commsState == WaitForUserInput) || (commsState == CommsComplete)) {
-                deviceBroadcast.btnStartBroadcastPressed();
+                deviceDataFetch.btnStartBroadcastPressed();
                 commsState = SendReceive;
                 espNow.enableDeviceScanCallback();
             }
@@ -73,7 +73,7 @@ void btn1PressedFunc() {
             break;
         case broadcastState:
             if (commsState == SendReceive) {
-                deviceBroadcast.btnCancelPressed();
+                deviceDataFetch.btnCancelPressed();
                 commsState = WaitForUserInput;
                 espNow.disableCallback();
             }
@@ -96,7 +96,7 @@ void btn2PressedFunc() {
             }
             if (programState == broadcastState) {
                 commsState = WaitForUserInput;
-                deviceBroadcast.InitScreen();
+                deviceDataFetch.InitScreen();
                 // espNow.init();
             }
             if (programState == helpState) {
@@ -168,6 +168,7 @@ void loop() {
     processButton(btn0);
     processButton(btn1);
     processButton(btn2);
+
     if (programState == setUpState && commsState == SendReceive) {
         if (espNow.ProccessPairingMessage() == Complete) {
             commsState = CommsComplete;
@@ -178,6 +179,7 @@ void loop() {
             sdInterface.AddDevice(temp);
         }
     }
+
     if (programState == broadcastState && commsState == SendReceive) {
         currentMillis = millis();
         if (currentMillis - previousMillis >= interval) {
@@ -199,6 +201,7 @@ void loop() {
             uint8_t sampleCount = dataFrame[2];
             char fileNameBuf[8] = {0};
             sprintf(fileNameBuf, "/%03d.txt", id);
+            deviceDataFetch.showRecievedData(id,sampleCount);
 
             sdInterface.openMonitorFile(fileNameBuf);
 
@@ -212,17 +215,6 @@ void loop() {
                 sdInterface.printPacket(tmp, time);
             }
             sdInterface.closeFile();
-
-            // for (int i = 0; i < 250; i++) {
-            //     Serial.print(dataFrame[i], HEX);
-            //     Serial.print(" ");
-            // }
         }
     }
 }
-
-// save the incoming data asap to the sd card. seperate text file for each monitor.
-
-// may need to have a bit of a buffer otherwise there may be too much data idk ill try it without a buffer first and see.
-// once this is done then all that is left to do is the buzzer mode which only small.
-// then need to to do some small tests
