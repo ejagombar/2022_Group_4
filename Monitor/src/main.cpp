@@ -190,7 +190,7 @@ void checkForBroadcast() {
         if (requestMessage.requestData == true) {
             Serial.println("Received request for data");
             while (transmit() == true) {
-                delay(500);
+                delay(10);
             }
         }
         if (requestMessage.enableBuzzer == true) {
@@ -245,14 +245,14 @@ void setup() {
         setupSensors(currentTime);
     }
 
-    //esp_sleep_enable_ext0_wakeup(GPIO_NUM_12, 0);
-    //setAlarmInterval(3);  // to wake the esp
+    // esp_sleep_enable_ext0_wakeup(GPIO_NUM_12, 0);
+    // setAlarmInterval(3);  // to wake the esp
 
     espNow.enableRemoteBroadcastListener();
 
     // digitalWrite(SDVcc, LOW);
     // esp_deep_sleep_start();
-} 
+}
 
 void loop() {
     for (int i = 0; i < 10; i++) {
@@ -290,13 +290,11 @@ void loop() {
         // Serial.println(out.groundTemp);
         // Serial.print("humidity: ");
         // Serial.println(out.humidity);
-    
 
         deviceMetadata.sampleNum++;
         sd.setMetadata(deviceMetadata);
 
-        checkForBroadcast();
-    
-        delay(300);
+        delay(50);
     }
+    checkForBroadcast();
 }
