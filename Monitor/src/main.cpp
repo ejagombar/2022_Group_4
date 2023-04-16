@@ -16,10 +16,9 @@
 #define TempVcc D10
 #define SDVcc D6
 #define BuzzerVcc D7
+#define INTERRUPT_PIN D13
 
 #define SECONDS_FROM_1970_TO_2023 1672531200
-
-#define INTERRUPT_PIN D13
 
 DistanceSensor distanceSensor;
 TemperatureSensor tempSensor;
@@ -33,7 +32,7 @@ RTC_PCF8523 Rtc;
 volatile bool alarm_triggered = false;
 metadata deviceMetadata = {};
 
-char time_format_buf[] = "YYYY-MM-DDThh:mm:00";
+char time_format_buf[] = "DD/MM/YY hh:mm:00";
 
 void alarmISR() {
     alarm_triggered = true;
@@ -52,8 +51,7 @@ void setAlarmInterval(uint8_t interval) {
 
     Rtc.enableAlarm(alarm_time, PCF8523_AlarmMinute);
 
-    char alarm_time_buf[] = "YYYY-MM-DDThh:mm:00";
-    Serial.println(String("Alarm Time: ") + alarm_time.toString(alarm_time_buf));
+    Serial.println(String("Alarm Time: ") + alarm_time.toString(time_format_buf));
 }
 
 Error setupSensors(DateTime currentTime) {
@@ -91,7 +89,6 @@ measurement takeSample(DateTime currentTime) {
     measurement sample;
     Error err;
     String errorMsg;
-    char time_format_buf[] = "YYYY-MM-DDThh:mm:00";
 
     err = tempSensor.measure();
     if (err == NO_ERROR) {
@@ -123,10 +120,6 @@ measurement takeSample(DateTime currentTime) {
     }
 
     sample.time = (currentTime.unixtime() - SECONDS_FROM_1970_TO_2023);  // number of seconds since 01/01/2023
-
-    // digitalWrite(PressureLidarVcc1, LOW);
-    // digitalWrite(PressureLidarVcc2, LOW);
-    // digitalWrite(TempVcc, LOW);
 
     return sample;
 }
@@ -245,13 +238,13 @@ void setup() {
         setupSensors(currentTime);
     }
 
-    // esp_sleep_enable_ext0_wakeup(GPIO_NUM_12, 0);
-    // setAlarmInterval(3);  // to wake the esp
+    esp_sleep_enable_ext0_wakeup(GPIO_NUM_12, 0);
+    setAlarmInterval(1);  // to wake the esp
 
     espNow.enableRemoteBroadcastListener();
 
-    // digitalWrite(SDVcc, LOW);
-    // esp_deep_sleep_start();
+    digitalWrite(SDVcc, LOW);
+    esp_deep_sleep_start();
 }
 
 void loop() {
@@ -260,37 +253,12 @@ void loop() {
         uint8_t buf[13] = {0};
         measurement measure = takeSample(currentTime);
 
+        digitalWrite(PressureLidarVcc1, LOW);
+        digitalWrite(PressureLidarVcc2, LOW);
+        digitalWrite(TempVcc, LOW);
+
         StructToArr(measure, buf);
         sd.saveMeasurement(deviceMetadata.sampleNum, buf);
-
-        // Serial.println("Saved measurement:");
-        // for (int i = 0; i < 13; i++) {
-        //     Serial.print(buf[i], HEX);
-        //     Serial.print(" ");
-        // }
-        // Serial.println();
-
-        // uint8_t buf2[13] = {0};
-
-        // if (sd.getMeasurements((int)deviceMetadata.sampleNum, buf2, 1) == FATAL_ERROR) {
-        //     Serial.println("Fatal error occured");
-        // }
-        // measurement out = ArrToStruct(buf2);
-
-        // Serial.print("timeOut: ");
-        // DateTime timeOut2(out.time + SECONDS_FROM_1970_TO_2023);
-        // Serial.println(timeOut2.toString(time_format_buf));
-        // Serial.print("peatHeight: ");
-        // Serial.println(out.peatHeight);
-        // Serial.print("waterHeight: ");
-        // Serial.println(out.waterHeight);
-        // Serial.print("boxTemp: ");
-        // Serial.println(out.boxTemp);
-        // Serial.print("groundTemp: ");
-        // Serial.println(out.groundTemp);
-        // Serial.print("humidity: ");
-        // Serial.println(out.humidity);
-
         deviceMetadata.sampleNum++;
         sd.setMetadata(deviceMetadata);
 
