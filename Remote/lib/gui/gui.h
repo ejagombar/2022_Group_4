@@ -39,8 +39,8 @@ class MainMenu {
    private:
     uint8_t cursorPosition = 0;
     static const uint8_t highLightPadding = 5;
-    static const uint8_t listLength = 5;
-    const String menuItems[listLength] = {"Setup Monitor", "Scan Monitors", "View Data", "Reset", "Help"};
+    static const uint8_t listLength = 5;   
+    const String menuItems[listLength] = {"Setup Monitor", "Fetch Data", "View Data", "Reset", "Help"};
 
     void SelectItem(uint8_t index);
     void UnselectItem(uint8_t index);
@@ -68,13 +68,16 @@ class DeviceSetup {
 
 //--------------------------------------------------------------------------------------------//
 
-class DeviceScan {
+class DeviceDataFetch {
    private:
+    uint8_t linenum = 0;
    public:
     void btnCancelPressed();
     void btnStartBroadcastPressed();
     void InitScreen();
-    DeviceScan(){};
+    void DispayDataRecieve(uint8_t position, uint8_t monitorNum, uint32_t samplesCount);
+    void showRecievedData(uint8_t monitorNum, uint32_t samplesCount);
+    DeviceDataFetch(){};
 };
 
 //--------------------------------------------------------------------------------------------//
@@ -99,6 +102,8 @@ class HelpPage {
     HelpPage(){};
 };
 
+//--------------------------------------------------------------------------------------------//
+
 class ErrorPage {
    public:
     void btnNextPressed();
@@ -108,5 +113,7 @@ class ErrorPage {
     ~ErrorPage(){};
     ErrorPage(){};
 };
+
+//--------------------------------------------------------------------------------------------//
 
 #endif

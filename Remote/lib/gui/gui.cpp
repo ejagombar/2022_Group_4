@@ -149,7 +149,7 @@ void DeviceSetup::displayIDNum(uint8_t num) {
 
 //--------------------------------------------------------------------------------------------//
 
-void DeviceScan::InitScreen() {
+void DeviceDataFetch::InitScreen() {
     screen.setRotation(3);
     screen.setTextSize(1);
     screen.fillScreen(COLOR_RGB565_BLACK);
@@ -159,21 +159,60 @@ void DeviceScan::InitScreen() {
     screen.setTextSize(1);
     screen.setFont(&FreeMono18pt7b);
     screen.setCursor(38, YMIN + 25);
-    screen.print("Scan Devices");
+    screen.print("Fetch Data");
 
-    const String menuItems[3] = {"Start", "", "Back"};
+    const String menuItems[3] = {"Fetch", "", "Back"};
     printMenuBar(menuItems);
-    screen.setCursor(5, YMIN + 60 + 30);
+
+    linenum = 0;
+
+    screen.setTextSize(1);
+    screen.setFont(&FreeMonoBold12pt7b);
 }
 
-void DeviceScan::btnStartBroadcastPressed() {
-    screen.fillRect(40, 60, XMAX - 80, 120, COLOR_RGB565_BLACK);
+void DeviceDataFetch::btnStartBroadcastPressed() {
     const String menuItems[3] = {"", "Cancel", "Back"};
     printMenuBar(menuItems);
+    screen.setTextSize(1);
+    screen.setFont(&FreeMonoBold12pt7b);
 }
 
-void DeviceScan::btnCancelPressed() {
+void DeviceDataFetch::btnCancelPressed() {
     InitScreen();
+}
+
+void DeviceDataFetch::showRecievedData(uint8_t monitorNum, uint32_t samplesCount) {
+    if (linenum >= 8) {
+        screen.fillRect(XMIN, YMIN + 50, XMAX, YMAX - 75, COLOR_RGB565_BLACK);
+        linenum = 0;
+    }
+    screen.setCursor(2, YMIN + 55 + (linenum * 20));
+    char buffer[50];
+    sprintf(buffer, "%02d samples from Id:%03d ",samplesCount, monitorNum);
+    screen.print(buffer);
+    linenum++;
+}
+
+void DeviceDataFetch::DispayDataRecieve(uint8_t position, uint8_t monitorNum, uint32_t samplesCount) {
+    screen.fillRoundRect(XMIN + 5, YMIN + 50 * position, XMAX - 2 * 5, 40, 10, 0x76d2);  // 0x9ed2 //75f2
+
+    screen.setTextSize(1);
+    screen.setFont(&FreeMonoBold12pt7b);
+    screen.setTextColor(COLOR_RGB565_BLACK);
+
+    screen.setCursor(10, YMIN + 26 + (position * 50));
+    char buffer[15];
+    sprintf(buffer, "Monitor %03d", monitorNum);
+    screen.print(buffer);
+
+    screen.fillRect(XMAX / 2 + 24, 50 * position, 2, 40, COLOR_RGB565_BLACK);
+
+    screen.setTextColor(COLOR_RGB565_BLACK);
+    screen.setTextSize(2);
+    // screen.setFont(&FreeMono18pt7b);
+    sprintf(buffer, "%04d", samplesCount);
+    screen.setCursor(XMAX / 2 + 40, YMIN + 32 + (position * 50));
+    screen.print(buffer);
 }
 
 //--------------------------------------------------------------------------------------------//
