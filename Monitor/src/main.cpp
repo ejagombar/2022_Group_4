@@ -32,12 +32,13 @@ RTC_PCF8523 Rtc;
 volatile bool alarm_triggered = false;
 metadata deviceMetadata = {};
 
+char time_format_buf[] = "DD/MM/YY hh:mm:00";
+
 void alarmISR() {
     alarm_triggered = true;
 }
 
 void setAlarmInterval(uint8_t interval) {
-    char time_format_buf[] = "DD/MM/YY hh:mm:00";
     alarm_triggered = false;
 
     DateTime current_time = Rtc.now();
@@ -57,7 +58,6 @@ Error setupSensors(DateTime currentTime) {
     Error err;
     String errorMsg;
     Error errOccured = NO_ERROR;
-    char time_format_buf[] = "DD/MM/YY hh:mm:00";
 
     err = distanceSensor.setup();
     if (err != NO_ERROR) {
@@ -89,7 +89,6 @@ measurement takeSample(DateTime currentTime) {
     measurement sample;
     Error err;
     String errorMsg;
-    char time_format_buf[] = "DD/MM/YY hh:mm:00";
 
     err = tempSensor.measure();
     if (err == NO_ERROR) {
@@ -177,23 +176,27 @@ bool transmit() {
     return true;
 }
 
-void checkForBroadcast() {
+void checkForBroadcast(uint8_t &repeat) {
     struct_RequestMessage requestMessage = espNow.processRemoteBroadcast();
-    Serial.println("Checking for broadcast");
+    Serial.print("Checking for broadcast ");
+    Serial.println(repeat);
     if ((requestMessage.monitorID == 0) || (requestMessage.monitorID == deviceMetadata.ID)) {
         if (requestMessage.requestData == true) {
             Serial.println("Received request for data");
             while (transmit() == true) {
                 delay(10);
+                repeat = (uint8_t)50;
             }
         }
         if (requestMessage.enableBuzzer == true) {
             Serial.println("Received request to enable buzzer");
             digitalWrite(BuzzerVcc, HIGH);
+            repeat += 2;
         }
         if (requestMessage.disableBuzzer == true) {
             Serial.println("Received request to disable buzzer");
             digitalWrite(BuzzerVcc, LOW);
+            repeat = 0;
         }
     }
 }
@@ -224,7 +227,7 @@ void setup() {
     // Rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
 
     sd.Init();
-    sd.DeleteFiles();
+    // sd.DeleteFiles();
     espNow.init();
 
     currentTime = Rtc.now();
@@ -244,26 +247,34 @@ void setup() {
 
     espNow.enableRemoteBroadcastListener();
 
+    uint8_t buf[13] = {0};
+    // Serial.println("Taking sample");
+    measurement measure = takeSample(currentTime);
+
+    digitalWrite(PressureLidarVcc1, LOW);
+    digitalWrite(PressureLidarVcc2, LOW);
+    digitalWrite(TempVcc, LOW);
+
+    StructToArr(measure, buf);
+    sd.saveMeasurement(deviceMetadata.sampleNum, buf);
+    deviceMetadata.sampleNum++;
+    sd.setMetadata(deviceMetadata);
+
+    Serial.println("Checking for messages");
+
+    uint8_t repeat = 1;
+
+    while (repeat > 0) {
+        repeat--;
+        delay(200);
+        checkForBroadcast(repeat);
+    }
+
     digitalWrite(SDVcc, LOW);
+
+    Serial.println("Going to sleep");
     esp_deep_sleep_start();
 }
 
 void loop() {
-    for (int i = 0; i < 10; i++) {
-        deviceMetadata = sd.getMetadata();
-        uint8_t buf[13] = {0};
-        measurement measure = takeSample(currentTime);
-
-        digitalWrite(PressureLidarVcc1, LOW);
-        digitalWrite(PressureLidarVcc2, LOW);
-        digitalWrite(TempVcc, LOW);
-
-        StructToArr(measure, buf);
-        sd.saveMeasurement(deviceMetadata.sampleNum, buf);
-        deviceMetadata.sampleNum++;
-        sd.setMetadata(deviceMetadata);
-
-        delay(50);
-    }
-    checkForBroadcast();
 }
