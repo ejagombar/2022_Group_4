@@ -18,11 +18,13 @@
 
 #define darkBlue 0x0190
 #define colour1 0x012a
+#define darkRed 0xb800
 
 enum MainState {
     mainMenuState,
     setUpState,
-    broadcastState,
+    dataFetchState,
+    findDeviceState,
     resetState,
     helpState,
 };
@@ -33,13 +35,18 @@ enum CommsState {
     CommsComplete,
 };
 
+struct DeviceBuzzer {
+    uint8_t num = 0;
+    bool buzzerOn = false;
+};
+
 //--------------------------------------------------------------------------------------------//
 
 class MainMenu {
    private:
     uint8_t cursorPosition = 0;
     static const uint8_t highLightPadding = 5;
-    static const uint8_t listLength = 5;   
+    static const uint8_t listLength = 5;
     const String menuItems[listLength] = {"Setup Monitor", "Fetch Data", "Find Monitor", "Reset", "Help"};
 
     void SelectItem(uint8_t index);
@@ -71,6 +78,7 @@ class DeviceSetup {
 class DeviceDataFetch {
    private:
     uint8_t linenum = 0;
+
    public:
     void btnCancelPressed();
     void btnStartBroadcastPressed();
@@ -78,6 +86,18 @@ class DeviceDataFetch {
     void DispayDataRecieve(uint8_t position, uint8_t monitorNum, uint32_t samplesCount);
     void showRecievedData(uint8_t monitorNum, uint32_t samplesCount);
     DeviceDataFetch(){};
+};
+
+//--------------------------------------------------------------------------------------------//
+
+class FindDevice {
+   private:
+   public:
+    FindDevice(){};
+    void btnCycleSelection();
+    void btnToggleBuzzer();
+    void InitScreen();
+    void DrawSelectionPanel(uint8_t num, bool buzzerOn);
 };
 
 //--------------------------------------------------------------------------------------------//

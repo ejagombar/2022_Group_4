@@ -52,7 +52,10 @@ MainState MainMenu::btnEnterPressed() {
             selection = setUpState;
             break;
         case 1:
-            selection = broadcastState;
+            selection = dataFetchState;
+            break;
+        case 2:
+            selection = findDeviceState;
             break;
         case 3:
             selection = resetState;
@@ -188,7 +191,7 @@ void DeviceDataFetch::showRecievedData(uint8_t monitorNum, uint32_t samplesCount
     }
     screen.setCursor(2, YMIN + 55 + (linenum * 20));
     char buffer[50];
-    sprintf(buffer, "%02d samples from Id:%03d ",samplesCount, monitorNum);
+    sprintf(buffer, "%02d samples from Id:%03d ", samplesCount, monitorNum);
     screen.print(buffer);
     linenum++;
 }
@@ -213,6 +216,57 @@ void DeviceDataFetch::DispayDataRecieve(uint8_t position, uint8_t monitorNum, ui
     sprintf(buffer, "%04d", samplesCount);
     screen.setCursor(XMAX / 2 + 40, YMIN + 32 + (position * 50));
     screen.print(buffer);
+}
+
+//--------------------------------------------------------------------------------------------//
+
+void FindDevice::InitScreen() {
+    screen.setRotation(3);
+    screen.setTextSize(1);
+    screen.fillScreen(COLOR_RGB565_BLACK);
+    screen.setTextColor(COLOR_RGB565_LGRAY);
+    screen.setTextWrap(true);
+
+    screen.setTextSize(1);
+    screen.setFont(&FreeMono18pt7b);
+    screen.setCursor(38, YMIN + 25);
+    screen.print("Find Monitor");
+
+    const String menuItems[3] = {"Next", "On/Off", "Back"};
+    printMenuBar(menuItems);
+}
+
+void FindDevice::btnCycleSelection() {
+}
+
+void FindDevice::btnToggleBuzzer() {
+}
+
+void FindDevice::DrawSelectionPanel(uint8_t num, bool buzzerOn) {
+    screen.fillRoundRect(20, 70, XMAX - 40, 100, 15, colour1);
+    screen.fillRoundRect(30, 85, 129, 70, 10, COLOR_RGB565_PURPLE);
+
+    screen.setTextColor(COLOR_RGB565_WHITE);
+    screen.setTextSize(3);
+    screen.setCursor(32, 137);
+    screen.setFont(&FreeMonoBold12pt7b);
+
+    char buffer[6];
+    sprintf(buffer, "%03d", num);
+    screen.print(buffer);
+
+    screen.setTextSize(2);
+    screen.setTextColor(COLOR_RGB565_BLACK);
+
+    if (buzzerOn) {
+        screen.setCursor(XMAX - 105, 106);
+        screen.print("ON");
+        screen.fillCircle(XMAX - 75, 135, 22, COLOR_RGB565_DGREEN);
+    } else {
+        screen.setCursor(XMAX - 120, 106);
+        screen.print("OFF");
+        screen.fillCircle(XMAX - 80, 135, 22, darkRed);
+    }
 }
 
 //--------------------------------------------------------------------------------------------//
