@@ -10,6 +10,7 @@
 MainMenu mainMenu;
 DeviceSetup deviceSetup;
 DeviceDataFetch deviceDataFetch;
+FindDevice findDevice;
 HelpPage helpPage;
 ErrorPage errorPage;
 ESPNowInterface espNow;
@@ -17,13 +18,14 @@ SDInterface sdInterface;
 
 MainState programState = mainMenuState;
 CommsState commsState;
+DeviceBuzzer deviceBuzzer;
 
 unsigned long currentMillis;
 unsigned long previousMillis = 0;
 const long interval = 500;
 
 #define SECONDS_FROM_1970_TO_2023 1672531200
-char time_format_buf[] = "YYYY-MM-DDThh:mm:00";
+char time_format_buf[] = "DD/MM/YY hh:mm:00";
 
 void processButton(Button &btn) {
     if ((digitalRead(btn.getPin()) == LOW) && btn.getReady()) {
@@ -40,6 +42,7 @@ void btn0PressedFunc() {
         case mainMenuState:
             mainMenu.btnUpPressed();
             break;
+
         case setUpState:
             if ((commsState == WaitForUserInput) || (commsState == CommsComplete)) {
                 deviceSetup.btnStartScanPressed();
@@ -47,13 +50,25 @@ void btn0PressedFunc() {
                 espNow.enableDeviceSetupCallback();
             }
             break;
-        case broadcastState:
+
+        case dataFetchState:
             if ((commsState == WaitForUserInput) || (commsState == CommsComplete)) {
                 deviceDataFetch.btnStartBroadcastPressed();
                 commsState = SendReceive;
                 espNow.enableDeviceScanCallback();
             }
             break;
+
+        case findDeviceState:
+            findDevice.btnCycleSelection();
+
+            deviceBuzzer.num++;
+            if (deviceBuzzer.num >= sdInterface.GetDeviceCount()) {
+                deviceBuzzer.num = 0;
+            }
+            findDevice.DrawSelectionPanel(sdInterface.GetDevice(deviceBuzzer.num).id, deviceBuzzer.buzzerOn);
+            break;
+
         case helpState:
             helpPage.btnPrevPressed();
             break;
@@ -64,6 +79,7 @@ void btn1PressedFunc() {
         case mainMenuState:
             mainMenu.btnDownPressed();
             break;
+
         case setUpState:
             if (commsState == SendReceive) {
                 deviceSetup.btnCancelPressed();
@@ -71,13 +87,21 @@ void btn1PressedFunc() {
                 espNow.disableCallback();
             }
             break;
-        case broadcastState:
+
+        case dataFetchState:
             if (commsState == SendReceive) {
                 deviceDataFetch.btnCancelPressed();
                 commsState = WaitForUserInput;
                 espNow.disableCallback();
             }
             break;
+
+        case findDeviceState:
+            deviceBuzzer.buzzerOn = !deviceBuzzer.buzzerOn;
+            findDevice.DrawSelectionPanel(sdInterface.GetDevice(deviceBuzzer.num).id, deviceBuzzer.buzzerOn);
+            findDevice.btnToggleBuzzer();
+            break;
+
         case helpState:
             helpPage.btnNextPressed();
             break;
@@ -86,7 +110,6 @@ void btn1PressedFunc() {
 void btn2PressedFunc() {
     switch (programState) {
         case mainMenuState:
-
             programState = mainMenu.btnEnterPressed();
             Serial.println(programState);
             if (programState == setUpState) {
@@ -94,9 +117,14 @@ void btn2PressedFunc() {
                 deviceSetup.InitScreen();
                 // espNow.init();
             }
-            if (programState == broadcastState) {
+            if (programState == dataFetchState) {
                 commsState = WaitForUserInput;
                 deviceDataFetch.InitScreen();
+                // espNow.init();
+            }
+            if (programState == findDeviceState) {
+                findDevice.InitScreen();
+                findDevice.DrawSelectionPanel(sdInterface.GetDevice(deviceBuzzer.num).id, deviceBuzzer.buzzerOn);
                 // espNow.init();
             }
             if (programState == helpState) {
@@ -105,34 +133,31 @@ void btn2PressedFunc() {
             if (programState == resetState) {
                 ESP.restart();
             };
-
             break;
-        case setUpState:
 
+        case setUpState:
             espNow.disableCallback();
-            // espNow.deinit();
             programState = mainMenuState;
             mainMenu.InitScreen();
-
             break;
 
-        case broadcastState:
-
+        case dataFetchState:
             espNow.disableCallback();
-            // espNow.deinit();
+            programState = mainMenuState;
+            mainMenu.InitScreen();
+            break;
+
+        case findDeviceState:
             programState = mainMenuState;
             mainMenu.InitScreen();
 
             break;
 
         case helpState:
-
             programState = mainMenuState;
             mainMenu.InitScreen();
-
             break;
     }
-    Serial.println(programState);
 }
 
 Button btn0(D7, &btn0PressedFunc);
@@ -180,7 +205,7 @@ void loop() {
         }
     }
 
-    if (programState == broadcastState && commsState == SendReceive) {
+    if (programState == dataFetchState && commsState == SendReceive) {
         currentMillis = millis();
         if (currentMillis - previousMillis >= interval) {
             previousMillis = currentMillis;
@@ -201,7 +226,7 @@ void loop() {
             uint8_t sampleCount = dataFrame[2];
             char fileNameBuf[8] = {0};
             sprintf(fileNameBuf, "/%03d.txt", id);
-            deviceDataFetch.showRecievedData(id,sampleCount);
+            deviceDataFetch.showRecievedData(id, sampleCount);
 
             sdInterface.openMonitorFile(fileNameBuf);
 
@@ -215,6 +240,18 @@ void loop() {
                 sdInterface.printPacket(tmp, time);
             }
             sdInterface.closeFile();
+        }
+    }
+    if (programState == findDeviceState) {
+        currentMillis = millis();
+        if (currentMillis - previousMillis >= interval) {
+            previousMillis = currentMillis;
+            struct_RequestMessage request = {};
+            request.monitorID = sdInterface.GetDevice(deviceBuzzer.num).id;
+            request.requestData = false;
+            request.enableBuzzer = deviceBuzzer.buzzerOn;
+            request.disableBuzzer = !deviceBuzzer.buzzerOn;
+            espNow.broadcastRequest(request);
         }
     }
 }
