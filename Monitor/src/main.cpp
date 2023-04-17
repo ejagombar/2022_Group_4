@@ -17,7 +17,8 @@
 #define SDVcc D6
 #define BuzzerVcc D7
 #define INTERRUPT_PIN D13
-#define DEBUG false
+
+#define DEBUG 1
 
 #define SECONDS_FROM_1970_TO_2023 1672531200
 
@@ -26,7 +27,7 @@ const uint8_t dataMsgCooldown = 80;
 const uint8_t buzzerOffCooldown = 0;
 const uint32_t espNowWaitTime = 250;
 
-const uint8_t deepSleepTime = 1;
+const uint8_t deepSleepTime = 5;
 const uint8_t wakeUpsPerSample = 3;
 
 DistanceSensor distanceSensor;
@@ -60,7 +61,9 @@ void setAlarmInterval(uint8_t interval) {
 
     Rtc.enableAlarm(alarm_time, PCF8523_AlarmMinute);
 
+#ifdef DEBUG
     Serial.println(String("Alarm Time: ") + alarm_time.toString(time_format_buf));
+#endif
 }
 
 Error setupSensors(DateTime currentTime) {
@@ -145,7 +148,7 @@ uint8_t setupDevice() {
 
     sd.SetUp(id);
 
-#ifndef DEBUG
+#ifdef DEBUG
     Serial.println("Paired!  Device ID: " + String(id));
 #endif
     return id;
@@ -236,22 +239,22 @@ void setup() {
     esp_sleep_enable_ext0_wakeup(GPIO_NUM_12, 0);
     setAlarmInterval(deepSleepTime);  // to wake the esp
 
-#ifndef DEBUG
     deviceMetadata.wakeUpCount++;
+
+#ifdef DEBUG
     Serial.println("Wakeup count: " + String(deviceMetadata.wakeUpCount));
 #endif
 
     if (deviceMetadata.wakeUpCount >= wakeUpsPerSample) {
+#ifdef DEBUG
+        Serial.println("Taking sample");
+#endif
         deviceMetadata.wakeUpCount = 0;
 
         setupSensors(currentTime);
 
         uint8_t buf[13] = {0};
         measurement measure = takeSample(currentTime);
-
-        digitalWrite(PressureLidarVcc1, LOW);
-        digitalWrite(PressureLidarVcc2, LOW);
-        digitalWrite(TempVcc, LOW);
 
         StructToArr(measure, buf);
         sd.saveMeasurement(deviceMetadata.sampleNum, buf);
@@ -260,7 +263,7 @@ void setup() {
 
     sd.setMetadata(deviceMetadata);
 
-#ifndef DEBUG
+#ifdef DEBUG
     Serial.println("Checking for messages");
 #endif
 
@@ -275,8 +278,12 @@ void setup() {
     }
 
     digitalWrite(SDVcc, LOW);
+    digitalWrite(PressureLidarVcc1, LOW);
+    digitalWrite(PressureLidarVcc2, LOW);
+    digitalWrite(TempVcc, LOW);
+
     espNow.disableCallback();
-#ifndef DEBUG
+#ifdef DEBUG
     Serial.println("Going to sleep");
 #endif
     esp_deep_sleep_start();
