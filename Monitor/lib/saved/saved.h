@@ -18,6 +18,7 @@ struct measurement {
 
 struct metadata {
     uint8_t ID;
+    uint8_t wakeUpCount;
     uint16_t sampleNum;
     uint16_t transmittedNum;
 };
