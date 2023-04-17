@@ -87,7 +87,6 @@ Error setupSensors(DateTime currentTime) {
         errOccured = FATAL_ERROR;
         errorMsg = currentTime.toString(time_format_buf) + String(": Pressure sensor setup error: ") + String(err);
         sd.logError(errorMsg);
-        Serial.println(errorMsg);
     };
     return errOccured;
 }
@@ -104,7 +103,6 @@ measurement takeSample(DateTime currentTime) {
     } else {
         errorMsg = currentTime.toString(time_format_buf) + String(": Temperature sensor read error: ") + String(err);
         sd.logError(errorMsg);
-        Serial.println(errorMsg);
     }
 
     err = pressureSensor.measure();
@@ -114,7 +112,6 @@ measurement takeSample(DateTime currentTime) {
     } else {
         errorMsg = currentTime.toString(time_format_buf) + String(": Pressure sensor read error: ") + String(err);
         sd.logError(errorMsg);
-        Serial.println(errorMsg);
     }
 
     err = distanceSensor.measure();
@@ -123,7 +120,6 @@ measurement takeSample(DateTime currentTime) {
     } else {
         errorMsg = currentTime.toString(time_format_buf) + String(": Distance sensor read error: ") + String(err);
         sd.logError(errorMsg);
-        Serial.println(errorMsg);
     }
 
     sample.time = (currentTime.unixtime() - SECONDS_FROM_1970_TO_2023);  // number of seconds since 01/01/2023
@@ -149,7 +145,9 @@ uint8_t setupDevice() {
 
     sd.SetUp(id);
 
+#ifndef DEBUG
     Serial.println("Paired!  Device ID: " + String(id));
+#endif
     return id;
 }
 
@@ -174,16 +172,11 @@ bool transmit() {
     sd.setMetadata(deviceMetadata);
 
     espNow.sendDataPacket(packet);
-    for (int i = 0; i < 250; i++) {
-        Serial.print(packet[i], HEX);
-        Serial.print(" ");
-    }
     return true;
 }
 
 void checkForBroadcast(uint8_t &repeat) {
     struct_RequestMessage requestMessage = espNow.processRemoteBroadcast();
-    Serial.println(repeat);
     if ((requestMessage.monitorID == 0) || (requestMessage.monitorID == deviceMetadata.ID)) {
         if (requestMessage.requestData == true) {
             while (transmit() == true) {
