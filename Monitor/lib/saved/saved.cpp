@@ -51,23 +51,23 @@ void SDInterface::DeleteFiles() {
 }
 
 Error SDInterface::SetUp(uint8_t idIn) {
-    metadata metadataIn = {idIn, 0, 0};
+    metadata metadataIn = {idIn, 0, 0, 0};
     CurrentFile = SD.open(metadataFilename, FILE_WRITE);
     if (CurrentFile) {
         CurrentFile.seek(0);
-        CurrentFile.write((byte *)&metadataIn, sizeof(metadataIn));
+        CurrentFile.write((byte*)&metadataIn, sizeof(metadataIn));
         CurrentFile.close();
         return NO_ERROR;
     } else {
         return FATAL_ERROR;
-    } 
+    }
 }
 
 Error SDInterface::setMetadata(metadata metadataIn) {
     CurrentFile = SD.open(metadataFilename, FILE_WRITE);
     if (CurrentFile) {
         CurrentFile.seek(0);
-        CurrentFile.write((byte *)&metadataIn, sizeof(metadataIn));
+        CurrentFile.write((byte*)&metadataIn, sizeof(metadataIn));
         CurrentFile.close();
         return NO_ERROR;
     } else {
@@ -80,7 +80,7 @@ metadata SDInterface::getMetadata() {
     CurrentFile = SD.open(metadataFilename, FILE_READ);
     if (CurrentFile) {
         CurrentFile.seek(0);
-        CurrentFile.read((byte *)&metadataOut, sizeof(metadataOut));
+        CurrentFile.read((byte*)&metadataOut, sizeof(metadataOut));
         CurrentFile.close();
     }
     return metadataOut;
