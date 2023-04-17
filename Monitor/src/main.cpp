@@ -20,6 +20,12 @@
 
 #define SECONDS_FROM_1970_TO_2023 1672531200
 
+const uint8_t buzzerOnCooldown = 240;
+const uint8_t dataMsgCooldown = 80;
+const uint8_t buzzerOffCooldown = 0;
+const uint32_t espNowWaitTime = 250;
+const uint8_t deepSleepTime = 1;
+
 DistanceSensor distanceSensor;
 TemperatureSensor tempSensor;
 PressureSensor pressureSensor;
@@ -185,18 +191,18 @@ void checkForBroadcast(uint8_t &repeat) {
             Serial.println("Received request for data");
             while (transmit() == true) {
                 delay(10);
-                repeat = (uint8_t)50;
+                repeat = dataMsgCooldown;
             }
         }
         if (requestMessage.enableBuzzer == true) {
             Serial.println("Received request to enable buzzer");
             digitalWrite(BuzzerVcc, HIGH);
-            repeat += 2;
+            repeat = buzzerOnCooldown;
         }
         if (requestMessage.disableBuzzer == true) {
             Serial.println("Received request to disable buzzer");
             digitalWrite(BuzzerVcc, LOW);
-            repeat = 0;
+            repeat = buzzerOffCooldown;
         }
     }
 }
@@ -243,7 +249,7 @@ void setup() {
     }
 
     esp_sleep_enable_ext0_wakeup(GPIO_NUM_12, 0);
-    setAlarmInterval(1);  // to wake the esp
+    setAlarmInterval(deepSleepTime);  // to wake the esp
 
     espNow.enableRemoteBroadcastListener();
 
@@ -266,8 +272,10 @@ void setup() {
 
     while (repeat > 0) {
         repeat--;
-        delay(200);
         checkForBroadcast(repeat);
+        if (repeat > 0) {
+            delay(espNowWaitTime);
+        }
     }
 
     digitalWrite(SDVcc, LOW);
