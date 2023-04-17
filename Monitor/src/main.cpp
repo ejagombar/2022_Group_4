@@ -17,6 +17,7 @@
 #define SDVcc D6
 #define BuzzerVcc D7
 #define INTERRUPT_PIN D13
+#define DEBUG false
 
 #define SECONDS_FROM_1970_TO_2023 1672531200
 
@@ -24,7 +25,9 @@ const uint8_t buzzerOnCooldown = 240;
 const uint8_t dataMsgCooldown = 80;
 const uint8_t buzzerOffCooldown = 0;
 const uint32_t espNowWaitTime = 250;
+
 const uint8_t deepSleepTime = 1;
+const uint8_t wakeUpsPerSample = 3;
 
 DistanceSensor distanceSensor;
 TemperatureSensor tempSensor;
@@ -70,7 +73,6 @@ Error setupSensors(DateTime currentTime) {
         errOccured = FATAL_ERROR;
         errorMsg = currentTime.toString(time_format_buf) + String(": Distance sensor setup error: ") + String(err);
         sd.logError(errorMsg);
-        Serial.println(errorMsg);
     };
 
     err = tempSensor.setup();
@@ -78,7 +80,6 @@ Error setupSensors(DateTime currentTime) {
         errOccured = FATAL_ERROR;
         errorMsg = currentTime.toString(time_format_buf) + String(": Temperature sensor setup error: ") + String(err);
         sd.logError(errorMsg);
-        Serial.println(errorMsg);
     };
 
     err = pressureSensor.setup();
@@ -155,12 +156,10 @@ uint8_t setupDevice() {
 bool transmit() {
     uint16_t startlocation = deviceMetadata.transmittedNum;
     uint16_t sampleCount = deviceMetadata.sampleNum - startlocation;
-    Serial.println("Start location: " + String(startlocation));
 
     if (sampleCount > 19) {
         sampleCount = 19;
     }
-    Serial.println("Sample count: " + String(sampleCount));
     if (sampleCount == 0) {
         return false;
     }
@@ -184,23 +183,19 @@ bool transmit() {
 
 void checkForBroadcast(uint8_t &repeat) {
     struct_RequestMessage requestMessage = espNow.processRemoteBroadcast();
-    Serial.print("Checking for broadcast ");
     Serial.println(repeat);
     if ((requestMessage.monitorID == 0) || (requestMessage.monitorID == deviceMetadata.ID)) {
         if (requestMessage.requestData == true) {
-            Serial.println("Received request for data");
             while (transmit() == true) {
                 delay(10);
                 repeat = dataMsgCooldown;
             }
         }
         if (requestMessage.enableBuzzer == true) {
-            Serial.println("Received request to enable buzzer");
             digitalWrite(BuzzerVcc, HIGH);
             repeat = buzzerOnCooldown;
         }
         if (requestMessage.disableBuzzer == true) {
-            Serial.println("Received request to disable buzzer");
             digitalWrite(BuzzerVcc, LOW);
             repeat = buzzerOffCooldown;
         }
@@ -208,19 +203,18 @@ void checkForBroadcast(uint8_t &repeat) {
 }
 
 void setup() {
-    // put your setup code here, to run once:
     Serial.begin(115200);
 
-    pinMode(PressureLidarVcc1, OUTPUT);  // PressureLidarVcc1
-    pinMode(PressureLidarVcc2, OUTPUT);  // PressureLidarVcc2
-    pinMode(TempVcc, OUTPUT);            // TempVcc
-    pinMode(SDVcc, OUTPUT);              // SDVcc
-    pinMode(BuzzerVcc, OUTPUT);          // BuzzerVcc
+    pinMode(PressureLidarVcc1, OUTPUT);
+    pinMode(PressureLidarVcc2, OUTPUT);
+    pinMode(TempVcc, OUTPUT);
+    pinMode(SDVcc, OUTPUT);
+    pinMode(BuzzerVcc, OUTPUT);
 
+    digitalWrite(SDVcc, HIGH);
     digitalWrite(PressureLidarVcc1, HIGH);
     digitalWrite(PressureLidarVcc2, HIGH);
     digitalWrite(TempVcc, HIGH);
-    digitalWrite(SDVcc, HIGH);
 
     pinMode(INTERRUPT_PIN, INPUT_PULLUP);
     attachInterrupt(INTERRUPT_PIN, alarmISR, FALLING);
@@ -241,32 +235,41 @@ void setup() {
 
     if (deviceMetadata.ID == 0) {
         deviceMetadata.ID = setupDevice();
-        Error err = setupSensors(currentTime);
         espNow.sendPairConfirmation(deviceMetadata.ID);
         espNow.disableCallback();
-    } else {
-        setupSensors(currentTime);
     }
 
+    espNow.enableRemoteBroadcastListener();
     esp_sleep_enable_ext0_wakeup(GPIO_NUM_12, 0);
     setAlarmInterval(deepSleepTime);  // to wake the esp
 
-    espNow.enableRemoteBroadcastListener();
+#ifndef DEBUG
+    deviceMetadata.wakeUpCount++;
+    Serial.println("Wakeup count: " + String(deviceMetadata.wakeUpCount));
+#endif
 
-    uint8_t buf[13] = {0};
-    // Serial.println("Taking sample");
-    measurement measure = takeSample(currentTime);
+    if (deviceMetadata.wakeUpCount >= wakeUpsPerSample) {
+        deviceMetadata.wakeUpCount = 0;
 
-    digitalWrite(PressureLidarVcc1, LOW);
-    digitalWrite(PressureLidarVcc2, LOW);
-    digitalWrite(TempVcc, LOW);
+        setupSensors(currentTime);
 
-    StructToArr(measure, buf);
-    sd.saveMeasurement(deviceMetadata.sampleNum, buf);
-    deviceMetadata.sampleNum++;
+        uint8_t buf[13] = {0};
+        measurement measure = takeSample(currentTime);
+
+        digitalWrite(PressureLidarVcc1, LOW);
+        digitalWrite(PressureLidarVcc2, LOW);
+        digitalWrite(TempVcc, LOW);
+
+        StructToArr(measure, buf);
+        sd.saveMeasurement(deviceMetadata.sampleNum, buf);
+        deviceMetadata.sampleNum++;
+    }
+
     sd.setMetadata(deviceMetadata);
 
+#ifndef DEBUG
     Serial.println("Checking for messages");
+#endif
 
     uint8_t repeat = 1;
 
@@ -279,8 +282,10 @@ void setup() {
     }
 
     digitalWrite(SDVcc, LOW);
-
+    espNow.disableCallback();
+#ifndef DEBUG
     Serial.println("Going to sleep");
+#endif
     esp_deep_sleep_start();
 }
 
