@@ -271,10 +271,8 @@ void setup() {
 
     while (repeat > 0) {
         repeat--;
+        delay(espNowWaitTime);
         checkForBroadcast(repeat);
-        if (repeat > 0) {
-            delay(espNowWaitTime);
-        }
     }
 
     digitalWrite(SDVcc, LOW);
