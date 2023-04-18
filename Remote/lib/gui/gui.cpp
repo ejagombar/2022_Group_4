@@ -186,7 +186,7 @@ void DeviceDataFetch::btnCancelPressed() {
 
 void DeviceDataFetch::showRecievedData(uint8_t monitorNum, uint32_t samplesCount) {
     if (linenum >= 8) {
-        screen.fillRect(XMIN, YMIN + 50, XMAX, YMAX - 75, COLOR_RGB565_BLACK);
+        screen.fillRect(XMIN, YMIN + 45, XMAX, YMAX - 70, COLOR_RGB565_BLACK);
         linenum = 0;
     }
     screen.setCursor(2, YMIN + 55 + (linenum * 20));
