@@ -22,10 +22,10 @@ DeviceBuzzer deviceBuzzer;
 
 unsigned long currentMillis;
 unsigned long previousMillis = 0;
-const long interval = 500;
+const long interval = 150;
 
 #define SECONDS_FROM_1970_TO_2023 1672531200
-char time_format_buf[] = "DD/MM/YY,hh:mm:00";
+char time_format_buf[] = "DD/MM/YY, hh:mm:00";
 
 void processButton(Button &btn) {
     if ((digitalRead(btn.getPin()) == LOW) && btn.getReady()) {
@@ -230,7 +230,7 @@ void loop() {
             sdInterface.openMonitorFile(fileNameBuf);
 
             for (int i = 0; i < sampleCount; i++) {
-                char time_format_buf[] = "DD/MM/YY,hh:mm:00";
+                char time_format_buf[] = "DD/MM/YY, hh:mm:00";
                 char time[20];
 
                 measurement tmp = ArrToStruct(&dataFrame[3 + 13 * i]);
