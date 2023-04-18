@@ -18,7 +18,7 @@
 #define BuzzerVcc D7
 #define INTERRUPT_PIN D13
 
-//#define DEBUG 1
+// #define DEBUG 1
 
 #define SECONDS_FROM_1970_TO_2023 1672531200
 
@@ -28,7 +28,7 @@ const uint8_t buzzerOffCooldown = 0;
 const uint32_t espNowWaitTime = 250;
 
 const uint8_t deepSleepTime = 5;
-const uint8_t wakeUpsPerSample = 2;
+const uint8_t wakeUpsPerSample = 3;
 
 DistanceSensor distanceSensor;
 TemperatureSensor tempSensor;
@@ -95,7 +95,7 @@ Error setupSensors(DateTime currentTime) {
 }
 
 measurement takeSample(DateTime currentTime) {
-    measurement sample;
+    measurement sample = {0, 0, 0, 0, 0, 0};
     Error err;
     String errorMsg;
 
@@ -183,7 +183,7 @@ void checkForBroadcast(uint8_t &repeat) {
     if ((requestMessage.monitorID == 0) || (requestMessage.monitorID == deviceMetadata.ID)) {
         if (requestMessage.requestData == true) {
             while (transmit() == true) {
-                delay(10);
+                delay(100);
                 repeat = dataMsgCooldown;
             }
         }
@@ -228,6 +228,8 @@ void setup() {
 
     currentTime = Rtc.now();
     deviceMetadata = sd.getMetadata();
+
+    //deviceMetadata.transmittedNum = 0;
 
     if (deviceMetadata.ID == 0) {
         deviceMetadata.ID = setupDevice();
