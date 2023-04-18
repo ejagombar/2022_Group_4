@@ -10,8 +10,8 @@ Error PressureSensor::setup() {
 }
 
 Error PressureSensor::measure() {
-    SampleBuffer depthSamples(5.0);
-    SampleBuffer tempSample(5.0);
+    SampleBuffer depthSamples(1.0);
+    SampleBuffer tempSample(1.0);
     bool errorOccured = false;
     for (int i = 0; i < SampleSize; i++)  // take the sum of multiple readings
     {

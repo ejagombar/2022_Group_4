@@ -10,7 +10,7 @@ Error DistanceSensor::setup() {
 }
 
 Error DistanceSensor::measure() {
-    SampleBuffer mySamples(35);
+    SampleBuffer mySamples(5);
     bool errorOccured = false;
     for (int i = 0; i < SampleSize; i++)  // take the sum of multiple readings
     {

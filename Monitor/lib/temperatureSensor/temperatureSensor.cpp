@@ -10,8 +10,8 @@ Error TemperatureSensor::setup() {
 }
 
 Error TemperatureSensor::measure() {
-    SampleBuffer TempSamples(3.0);
-    SampleBuffer HumiditySamples(3.0);
+    SampleBuffer TempSamples(1.0);
+    SampleBuffer HumiditySamples(1.0);
     bool errorOccured = false;
     for (int i = 0; i < SampleSize; i++)  // take the sum of multiple readings
     {
