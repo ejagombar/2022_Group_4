@@ -2,16 +2,13 @@
 #define PRESSURESENSOR_H
 
 #include <Arduino.h>
-#include <Wire.h>
 
-#include <MS5837.h>
 #include "sampleBuffer.h"
 #include "Error.h"
 
 class PressureSensor {
    private:
-    MS5837 Sensor;
-    const int SampleSize = 5;
+    const int SampleSize = 1;
     float depth;
     float temperature;
 

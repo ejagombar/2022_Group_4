@@ -1,26 +1,17 @@
 #include "temperatureSensor.h"
 
 Error TemperatureSensor::setup() {
-    Sensor.mSensorType = SHTSensor::SHTC3;
-    if (Sensor.init()) {
-        return NO_ERROR;
-    } else {
-        return FATAL_ERROR;
-    }
+    return NO_ERROR;
 }
 
 Error TemperatureSensor::measure() {
-    SampleBuffer TempSamples(3.0);
-    SampleBuffer HumiditySamples(3.0);
+    SampleBuffer TempSamples(30);
+    SampleBuffer HumiditySamples(100);
     bool errorOccured = false;
     for (int i = 0; i < SampleSize; i++)  // take the sum of multiple readings
     {
-        if (Sensor.readSample()) {
-            TempSamples.addSample(Sensor.getTemperature());
-            HumiditySamples.addSample(Sensor.getHumidity());
-        } else {
-            errorOccured = true;
-        }
+        TempSamples.addSample(random(5, 25));
+        HumiditySamples.addSample(random(1, 100));
     }
     if (errorOccured) {
         return FATAL_ERROR;

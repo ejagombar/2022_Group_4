@@ -8,7 +8,7 @@
 
 class DistanceSensor {
    private:
-    const int SampleSize = 6;
+    const int SampleSize = 1;
     int result;
 
    public:
