@@ -42,7 +42,7 @@ class SDInterface {
     String datalogFilename = "/logdata.bin";
     String errorlogFilename = "/errorlog.txt";
     String metadataFilename = "/metadata.bin";
-    uint8_t dataLogFile[100];
+    uint8_t dataLogFile[1000];
     metadata metadataSaved;
 
    public:
