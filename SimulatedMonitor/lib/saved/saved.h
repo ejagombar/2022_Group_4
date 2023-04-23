@@ -2,8 +2,6 @@
 #define Saved_H
 
 #include <Arduino.h>
-#include <SD.h>
-#include <SPI.h>
 
 #include "Error.h"
 
@@ -34,7 +32,6 @@ struct Datastore {
     uint16_t y;
 };
 
-#define CSPIN D9
 
 measurement ArrToStruct(uint8_t* arrIn);
 void StructToArr(measurement measurementIn, uint8_t* arrOut);
@@ -42,11 +39,11 @@ void StructToArr(measurement measurementIn, uint8_t* arrOut);
 class SDInterface {
    private:
     uint8_t deviceID;
-    OpenFile openFile = NoneOpen;
-    File CurrentFile;
     String datalogFilename = "/logdata.bin";
     String errorlogFilename = "/errorlog.txt";
     String metadataFilename = "/metadata.bin";
+    uint8_t dataLogFile[100];
+    metadata metadataSaved;
 
    public:
     SDInterface(){};
