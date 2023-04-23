@@ -25,18 +25,18 @@ Error SDInterface::logError(String messageIn) {
 }
 
 void SDInterface::DeleteFiles() {
-    SD.remove(datalogFilename);
-    SD.remove(errorlogFilename);
-    SD.remove(metadataFilename);
+
 }
 
 Error SDInterface::SetUp(uint8_t idIn) {
     metadata metadataIn = {idIn, 0, 0, 0};
     metadataSaved = metadataIn;
+    return NO_ERROR;
 }
 
 Error SDInterface::setMetadata(metadata metadataIn) {
     metadataSaved = metadataIn;
+    return NO_ERROR;
 }
 
 metadata SDInterface::getMetadata() {

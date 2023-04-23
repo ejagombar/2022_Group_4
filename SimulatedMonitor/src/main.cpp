@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include <RTClib.h>
 #include <String.h>
 
 #include "distanceSensor.h"
@@ -9,13 +8,17 @@
 #include "saved.h"
 #include "temperatureSensor.h"
 
-//#define DEBUG 1
+#define DEBUG 1
+#define FIREBEETLE 1
+//#define MSTACK 1
 
-
+#ifdef MSTACK
+#include <M5Core2.h>
+#endif
 
 const uint8_t buzzerOnCooldown = 240;
-const uint8_t dataMsgCooldown = 80;
-const uint8_t buzzerOffCooldown = 0;
+const uint8_t dataMsgCooldown = 50;
+const uint8_t buzzerOffCooldown = 10;
 const uint32_t espNowWaitTime = 250;
 
 const uint8_t deepSleepTime = 5;
@@ -29,7 +32,6 @@ ESPNowClient espNow;
 
 metadata deviceMetadata = {};
 
-
 Error setupSensors() {
     Error err;
     String errorMsg;
@@ -38,7 +40,7 @@ Error setupSensors() {
     err = distanceSensor.setup();
     if (err != NO_ERROR) {
         errOccured = FATAL_ERROR;
-        errorMsg =  String(": Distance sensor setup error: ") + String(err);
+        errorMsg = String(": Distance sensor setup error: ") + String(err);
         sd.logError(errorMsg);
     };
 
@@ -68,13 +70,13 @@ measurement takeSample() {
         sample.boxTemp = (uint16_t)(tempSensor.getTemperature() * 100);
         sample.humidity = (uint16_t)(tempSensor.getHumidity() * 100);
     } else {
-        errorMsg =String(": Temperature sensor read error: ") + String(err);
+        errorMsg = String(": Temperature sensor read error: ") + String(err);
         sd.logError(errorMsg);
     }
 
     err = pressureSensor.measure();
     if (err == NO_ERROR) {
-        sample.waterHeight = (uint16_t)(pressureSensor.getDepth() * 100);
+        sample.waterHeight = (uint16_t)(pressureSensor.getDepth());
         sample.groundTemp = (uint16_t)(pressureSensor.getTemperature() * 100);
     } else {
         errorMsg = String(": Pressure sensor read error: ") + String(err);
@@ -89,7 +91,7 @@ measurement takeSample() {
         sd.logError(errorMsg);
     }
 
-    sample.time = random(0,4294967295);
+    sample.time = (uint32_t)random(0, 4294967295);
 
     return sample;
 }
@@ -152,11 +154,25 @@ void checkForBroadcast(uint8_t &repeat) {
             }
         }
         if (requestMessage.enableBuzzer == true) {
+#ifdef FIREBEETLE
             digitalWrite(LED_BUILTIN, HIGH);
+#endif
+#ifdef MSTACK
+            M5.Lcd.clear();
+            M5.Lcd.setCursor(0,0);
+            M5.Lcd.print("Buzzer Enabled");
+#endif
             repeat = buzzerOnCooldown;
         }
         if (requestMessage.disableBuzzer == true) {
+#ifdef FIREBEETLE
             digitalWrite(LED_BUILTIN, LOW);
+#endif
+#ifdef MSTACK
+            M5.Lcd.clear();
+            M5.Lcd.setCursor(0,0);
+            M5.Lcd.print("Buzzer Disabled");
+#endif
             repeat = buzzerOffCooldown;
         }
     }
@@ -164,9 +180,16 @@ void checkForBroadcast(uint8_t &repeat) {
 
 void setup() {
     Serial.begin(115200);
+#ifdef MSTACK
+    M5.begin();
+    M5.Lcd.setTextSize(3);
+#endif
+}
 
+void loop() {
+#ifdef FIREBEETLE
     pinMode(LED_BUILTIN, OUTPUT);
-
+#endif
 
     sd.Init();
     // sd.DeleteFiles();
@@ -181,7 +204,7 @@ void setup() {
     }
 
     espNow.enableRemoteBroadcastListener();
-    esp_sleep_enable_ext0_wakeup(GPIO_NUM_12, 0);
+    // esp_sleep_enable_ext0_wakeup(GPIO_NUM_12, 0);
 
     deviceMetadata.wakeUpCount++;
 
@@ -219,15 +242,16 @@ void setup() {
         checkForBroadcast(repeat);
     }
 
-
     espNow.disableCallback();
 #ifdef DEBUG
     Serial.println("Going to sleep");
 #endif
-    //esp_deep_sleep_start();
+// esp_deep_sleep_start();
+#ifdef FIREBEETLE
     digitalWrite(LED_BUILTIN, LOW);
-    delay(10000);
-}
-
-void loop() {
+#endif
+#ifdef MSTACK
+    M5.Lcd.clear();
+#endif
+    delay(5000);
 }
