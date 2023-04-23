@@ -1,8 +1,6 @@
 #include <Arduino.h>
 #include <RTClib.h>
-#include <SPI.h>
 #include <String.h>
-#include <Wire.h>
 
 #include "distanceSensor.h"
 #include "espNowClient.h"
