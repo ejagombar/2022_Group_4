@@ -224,7 +224,7 @@ void loop() {
             uint8_t id = dataFrame[1];
             uint8_t sampleCount = dataFrame[2];
             char fileNameBuf[8] = {0};
-            sprintf(fileNameBuf, "/%03d.txt", id);
+            sprintf(fileNameBuf, "/%03d.csv", id);
             deviceDataFetch.showRecievedData(id, sampleCount);
 
             sdInterface.openMonitorFile(fileNameBuf);
