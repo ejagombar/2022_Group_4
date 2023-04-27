@@ -10,8 +10,8 @@ char* MACtoStr(const uint8_t* mac_addr) {
     return macStr;
 }
 
-void SDInterface::Init() {
-    SD.begin(CSPIN);
+bool SDInterface::Init() {
+    bool init = SD.begin(CSPIN);
     if (!SD.exists(deviceFileName)) {
         CurrentFile = SD.open(deviceFileName, FILE_WRITE);
         CurrentFile.seek(0);
@@ -23,6 +23,7 @@ void SDInterface::Init() {
         CurrentFile.read(&deviceCount, sizeof(deviceCount));
     }
     CurrentFile.close();
+    return init;
 }
 
 void SDInterface::DeleteFiles() {
