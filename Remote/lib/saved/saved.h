@@ -38,7 +38,7 @@ class SDInterface {
     ~SDInterface(){};
     void AddDevice(SavedDevice deviceIn);
     SavedDevice GetDevice(uint8_t index);
-    void Init();
+    bool Init();
     void DeleteFiles();
     uint8_t GetDeviceCount();
     void openMonitorFile(char* fileName);

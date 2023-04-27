@@ -186,7 +186,7 @@ void DeviceDataFetch::btnCancelPressed() {
 
 void DeviceDataFetch::showRecievedData(uint8_t monitorNum, uint32_t samplesCount) {
     if (linenum >= 8) {
-        screen.fillRect(XMIN, YMIN + 45, XMAX, YMAX - 70, COLOR_RGB565_BLACK);
+        screen.fillRect(XMIN, YMIN + 40, XMAX, YMAX - 65, COLOR_RGB565_BLACK);
         linenum = 0;
     }
     screen.setCursor(2, YMIN + 55 + (linenum * 20));
@@ -327,6 +327,12 @@ void ErrorPage::InitScreen(String msg) {
     const String menuItems[3] = {"", "", "Restart"};
 
     printMenuBar(menuItems);
+
+    printMenuBar(menuItems);
+    screen.setTextSize(1);
+    screen.setFont(&FreeMonoBold12pt7b);
+    screen.setCursor(2, YMIN + 80);
+    screen.print(msg);
 }
 
 void ErrorPage::btnNextPressed() {
@@ -336,5 +342,5 @@ void ErrorPage::btnPrevPressed() {
 }
 
 void ErrorPage::btnRestartPressed() {
-    ESP.restart();
+ 
 }

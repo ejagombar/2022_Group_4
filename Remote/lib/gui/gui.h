@@ -27,6 +27,7 @@ enum MainState {
     findDeviceState,
     resetState,
     helpState,
+    errorState,
 };
 
 enum CommsState {
