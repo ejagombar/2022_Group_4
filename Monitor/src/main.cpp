@@ -183,7 +183,7 @@ void checkForBroadcast(uint8_t &repeat) {
     if ((requestMessage.monitorID == 0) || (requestMessage.monitorID == deviceMetadata.ID)) {
         if (requestMessage.requestData == true) {
             while (transmit() == true) {
-                delay(100);
+                delay(150);
                 repeat = dataMsgCooldown;
             }
         }
@@ -228,8 +228,6 @@ void setup() {
 
     currentTime = Rtc.now();
     deviceMetadata = sd.getMetadata();
-
-    //deviceMetadata.transmittedNum = 0;
 
     if (deviceMetadata.ID == 0) {
         deviceMetadata.ID = setupDevice();
