@@ -157,6 +157,9 @@ void btn2PressedFunc() {
             programState = mainMenuState;
             mainMenu.InitScreen();
             break;
+        case errorState:
+            ESP.restart();
+            break;
     }
 }
 
@@ -166,26 +169,32 @@ Button btn2(D5, &btn2PressedFunc);
 
 void setup() {
     Serial.begin(115200);
-    sdInterface.Init();
-    delay(500);
-    pinMode(btn0.getPin(), INPUT_PULLUP);
-    pinMode(btn1.getPin(), INPUT_PULLUP);
-    pinMode(btn2.getPin(), INPUT_PULLUP);
 
-    mainMenu.InitScreen();
-    programState = mainMenuState;
+    if (!sdInterface.Init()) {
+        delay(500);
+        errorPage.InitScreen("SD Card Not Mounted!");
+        programState = errorState;
+    } else {
+        delay(500);
+        pinMode(btn0.getPin(), INPUT_PULLUP);
+        pinMode(btn1.getPin(), INPUT_PULLUP);
+        pinMode(btn2.getPin(), INPUT_PULLUP);
 
-    unsigned long currentMillis = millis();
-    unsigned long previousMillis = 0;
+        mainMenu.InitScreen();
+        programState = mainMenuState;
 
-    espNow.init();
-    uint8_t count = sdInterface.GetDeviceCount();
-    espNow.setDeviceCount(count);
-    for (int i = 0; i < count; i++) {
-        SavedDevice temp = sdInterface.GetDevice(i);
-        espNow.addDevice(temp.macAddr);
-        Serial.println("Added Device: ");
-        printMAC(temp.macAddr);
+        unsigned long currentMillis = millis();
+        unsigned long previousMillis = 0;
+
+        espNow.init();
+        uint8_t count = sdInterface.GetDeviceCount();
+        espNow.setDeviceCount(count);
+        for (int i = 0; i < count; i++) {
+            SavedDevice temp = sdInterface.GetDevice(i);
+            espNow.addDevice(temp.macAddr);
+            Serial.println("Added Device: ");
+            printMAC(temp.macAddr);
+        }
     }
 }
 
@@ -203,9 +212,7 @@ void loop() {
             memcpy(temp.macAddr, espNow.getCurrentMAC(), 6);
             sdInterface.AddDevice(temp);
         }
-    }
-
-    if (programState == dataFetchState && commsState == SendReceive) {
+    } else if (programState == dataFetchState && commsState == SendReceive) {
         currentMillis = millis();
         if (currentMillis - previousMillis >= interval) {
             previousMillis = currentMillis;
@@ -241,8 +248,7 @@ void loop() {
             }
             sdInterface.closeFile();
         }
-    }
-    if (programState == findDeviceState) {
+    } else if (programState == findDeviceState) {
         currentMillis = millis();
         if (currentMillis - previousMillis >= interval) {
             previousMillis = currentMillis;
