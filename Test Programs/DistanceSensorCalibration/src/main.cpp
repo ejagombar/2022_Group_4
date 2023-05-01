@@ -1,5 +1,9 @@
 #include <Arduino.h>
 
+#include "distanceSensor.h"
+
+DistanceSensor distanceSensor;
+
 void setup() {
   // put your setup code here, to run once:
 }
