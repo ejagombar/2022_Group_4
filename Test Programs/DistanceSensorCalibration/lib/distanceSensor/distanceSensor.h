@@ -12,15 +12,15 @@ class DistanceSensor {
    private:
     Adafruit_VL53L0X sensor;
     VL53L0X_RangingMeasurementData_t measureData;
-    const int SampleSize = 6;
-    int result;
+    const int SampleSize = 50;
+    float result;
 
    public:
     DistanceSensor(){};
     ~DistanceSensor(){};
     Error setup();
     Error measure();
-    int getResult();
+    float getDistance();
 };
 
 #endif // DISTANCESENSOR_H
