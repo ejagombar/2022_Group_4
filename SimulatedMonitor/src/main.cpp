@@ -9,7 +9,7 @@
 #include "temperatureSensor.h"
 
 #define DEBUG 1
-#define FIREBEETLE 1
+//#define FIREBEETLE 1
 //#define MSTACK 1
 
 #ifdef MSTACK
@@ -253,5 +253,5 @@ void loop() {
 #ifdef MSTACK
     M5.Lcd.clear();
 #endif
-    delay(5000);
+    delay(2000);
 }
