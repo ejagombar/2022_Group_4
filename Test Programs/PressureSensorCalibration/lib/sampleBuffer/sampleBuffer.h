@@ -5,7 +5,7 @@
 
 class SampleBuffer {
    private:
-    static const int MAX_SAMPLES = 10;
+    static const int MAX_SAMPLES = 50;
     float samples[MAX_SAMPLES];
     float maxVariation;
     int sampleCount;
