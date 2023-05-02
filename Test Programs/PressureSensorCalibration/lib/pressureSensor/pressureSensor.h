@@ -14,6 +14,7 @@ class PressureSensor {
     const int SampleSize = 5;
     float depth;
     float temperature;
+    float pressure;
 
    public:
     PressureSensor(){};
@@ -22,6 +23,7 @@ class PressureSensor {
     Error measure();
     float getDepth();
     float getTemperature();
+    float getPressure();
 };
 
 #endif // PRESSURESENSOR_H

@@ -10,14 +10,16 @@ Error PressureSensor::setup() {
 }
 
 Error PressureSensor::measure() {
-    SampleBuffer depthSamples(1.0);
-    SampleBuffer tempSample(1.0);
+    SampleBuffer depthSamples(2.0);
+    SampleBuffer tempSample(2.0);
+    SampleBuffer pressureSample(2.0);
     bool errorOccured = false;
     for (int i = 0; i < SampleSize; i++)  // take the sum of multiple readings
     {
         Sensor.read();
         depthSamples.addSample(Sensor.depth());
         tempSample.addSample(Sensor.temperature());
+        pressureSample.addSample(Sensor.pressure());
     }
 
     if (!depthSamples.isStable()) {
@@ -28,8 +30,13 @@ Error PressureSensor::measure() {
         return UNSTABLE_ERROR;
     }
 
+    if (!pressureSample.isStable()) {
+        return UNSTABLE_ERROR;
+    }
+
     depth = depthSamples.getAverage();
     temperature = tempSample.getAverage();
+    pressure = pressureSample.getAverage();
     return NO_ERROR;
 }
 
@@ -39,4 +46,8 @@ float PressureSensor::getDepth() {
 
 float PressureSensor::getTemperature() {
     return temperature;
+}
+
+float PressureSensor::getPressure() {
+    return pressure;
 }
