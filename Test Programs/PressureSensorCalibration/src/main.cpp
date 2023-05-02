@@ -5,17 +5,18 @@
 #define PressureLidarVcc1 D11
 #define PressureLidarVcc2 D12
 
-PressureSensor pressureSensor(50, 2, 2, 2, 997);
+PressureSensor pressureSensor(20, 5, 5, 5, 997);
 
 void setup() {
     Serial.begin(115200);
-    Wire.begin(SDA, SCL);
 
     pinMode(PressureLidarVcc1, OUTPUT);
     pinMode(PressureLidarVcc2, OUTPUT);
 
     digitalWrite(PressureLidarVcc1, HIGH);
     digitalWrite(PressureLidarVcc2, HIGH);
+
+    Wire.begin(SDA, SCL);
 
     if (pressureSensor.setup() != NO_ERROR) {
         Serial.println("Error occured on setupt");
