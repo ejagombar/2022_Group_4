@@ -5,16 +5,16 @@ Error PressureSensor::setup() {
         return FATAL_ERROR;
     }
     Sensor.setModel(MS5837::MS5837_02BA);
-    Sensor.setFluidDensity(997);  // kg/m^3 (freshwater, 1029 for seawater)
+    Sensor.setFluidDensity(fluidDensity);  // kg/m^3 (freshwater, 1029 for seawater)
     return NO_ERROR;
 }
 
 Error PressureSensor::measure() {
-    SampleBuffer depthSamples(2.0);
-    SampleBuffer tempSample(2.0);
-    SampleBuffer pressureSample(2.0);
+    SampleBuffer depthSamples(depthVariation);
+    SampleBuffer tempSample(tempVariation);
+    SampleBuffer pressureSample(pressureVariation);
     bool errorOccured = false;
-    for (int i = 0; i < SampleSize; i++)  // take the sum of multiple readings
+    for (int i = 0; i < sampleSize; i++)  // take the sum of multiple readings
     {
         Sensor.read();
         depthSamples.addSample(Sensor.depth());

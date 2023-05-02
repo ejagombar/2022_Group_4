@@ -2,22 +2,29 @@
 #define PRESSURESENSOR_H
 
 #include <Arduino.h>
+#include <MS5837.h>
 #include <Wire.h>
 
-#include <MS5837.h>
-#include "sampleBuffer.h"
 #include "Error.h"
+#include "sampleBuffer.h"
 
 class PressureSensor {
    private:
     MS5837 Sensor;
-    const int SampleSize = 5;
+    int sampleSize;
+    float pressureVariation, depthVariation, tempVariation;
+    float fluidDensity;
     float depth;
     float temperature;
     float pressure;
 
    public:
-    PressureSensor(){};
+    PressureSensor(float sampleSize_,float pressureVariation_, float depthVariation_, float tempVariation_, int fluidDensity_)
+    :sampleSize(sampleSize_),
+    pressureVariation(pressureVariation_),
+    depthVariation(depthVariation_),
+    tempVariation(tempVariation_),
+    fluidDensity(fluidDensity_){};
     ~PressureSensor(){};
     Error setup();
     Error measure();
@@ -26,4 +33,4 @@ class PressureSensor {
     float getPressure();
 };
 
-#endif // PRESSURESENSOR_H
+#endif  // PRESSURESENSOR_H
